@@ -1,26 +1,96 @@
 @import "tailwindcss";
 
+/* Dona Onça - Design System */
 :root {
+  /* Brand Colors - Magenta inspired by the logo */
+  --brand-50: #fdf2f8;
+  --brand-100: #fce7f3;
+  --brand-200: #fbcfe8;
+  --brand-300: #f9a8d4;
+  --brand-400: #f472b6;
+  --brand-500: #ec4899;
+  --brand-600: #B4186D; /* Primary - from logo */
+  --brand-700: #9d174d;
+  --brand-800: #831843;
+  --brand-900: #500724;
+  
+  /* Neutrals */
   --background: #ffffff;
   --foreground: #171717;
+  --muted: #f9fafb;
+  --border: #e5e7eb;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  
+  /* Brand palette */
+  --color-brand-50: var(--brand-50);
+  --color-brand-100: var(--brand-100);
+  --color-brand-200: var(--brand-200);
+  --color-brand-300: var(--brand-300);
+  --color-brand-400: var(--brand-400);
+  --color-brand-500: var(--brand-500);
+  --color-brand-600: var(--brand-600);
+  --color-brand-700: var(--brand-700);
+  --color-brand-800: var(--brand-800);
+  --color-brand-900: var(--brand-900);
+  
+  /* Font */
+  --font-sans: "Montserrat", system-ui, sans-serif;
+  
+  /* Custom border radius - inspired by logo curves */
+  --radius-onca: 1.5rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* Base body */
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+}
+
+/* Utility classes for brand */
+.text-brand {
+  color: var(--brand-600);
+}
+
+.bg-brand {
+  background-color: var(--brand-600);
+}
+
+.border-brand {
+  border-color: var(--brand-600);
+}
+
+.hover\:bg-brand-700:hover {
+  background-color: var(--brand-700);
+}
+
+/* Smooth transitions */
+* {
+  transition-property: color, background-color, border-color, transform, box-shadow;
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--muted);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--brand-300);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--brand-400);
 }
