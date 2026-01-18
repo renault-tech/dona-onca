@@ -5,9 +5,20 @@ import Link from 'next/link';
 import { useProducts, categories } from '@/contexts/ProductContext';
 
 export default function Home() {
-  const { products, getProductsByCategory } = useProducts();
+  const { products, getProductsByCategory, loading } = useProducts();
   const activeProducts = products.filter(p => p.active);
   const featuredProducts = activeProducts.slice(0, 6);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-white">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-brand-200 border-t-brand-600" />
+          <p className="font-medium text-gray-500">Carregando Dona Onça...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">

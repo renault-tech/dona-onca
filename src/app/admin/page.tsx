@@ -3,26 +3,15 @@ import Image from 'next/image';
 
 const adminCards = [
     {
-        title: 'Novo Produto',
-        description: 'Adicionar um novo produto ao catálogo',
-        href: '/admin/products/new',
-        icon: (
-            <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-        ),
-        color: 'bg-brand-600',
-    },
-    {
         title: 'Produtos',
-        description: 'Ver e editar produtos existentes',
+        description: 'Gerenciar catálogo, estoque e novos produtos',
         href: '/admin/products',
         icon: (
             <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
             </svg>
         ),
-        color: 'bg-purple-600',
+        color: 'bg-brand-600',
     },
     {
         title: 'Pedidos',

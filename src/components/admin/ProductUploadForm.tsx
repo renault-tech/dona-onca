@@ -23,7 +23,9 @@ export default function ProductUploadForm() {
         originalPrice: '',
         category: '' as Product['category'] | '',
         stock: '',
-        sizes: '',
+        hasSize: true,
+        hasColor: true,
+        sizes: [] as string[],
         colors: '',
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -99,17 +101,17 @@ export default function ProductUploadForm() {
             originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
             category: formData.category as Product['category'],
             stock: parseInt(formData.stock),
-            sizes: formData.sizes ? formData.sizes.split(',').map(s => s.trim()) : ['Único'],
-            colors: formData.colors ? formData.colors.split(',').map(c => c.trim()) : ['Único'],
-            images: images.map(img => img.preview), // In production, upload to storage
+            lowStockAlert: 5, // Default for new products
+            hasSize: formData.hasSize,
+            hasColor: formData.hasColor,
+            sizes: formData.hasSize ? formData.sizes : [],
+            colors: formData.hasColor ? formData.colors.split(',').map(c => c.trim()).filter(c => c !== '') : [],
+            images: images.map(img => img.preview),
             active: true,
         };
 
-        // Add to context
-        addProduct(newProduct);
-
-        // Simulate delay for UX
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        // Add to context (Supabase)
+        await addProduct(newProduct);
 
         setIsSubmitting(false);
 
@@ -129,8 +131,8 @@ export default function ProductUploadForm() {
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
                     className={`relative rounded-2xl border-2 border-dashed p-8 text-center transition-all ${isDragOver
-                            ? 'border-brand-500 bg-brand-50'
-                            : 'border-gray-300 hover:border-brand-400 hover:bg-gray-50'
+                        ? 'border-brand-500 bg-brand-50'
+                        : 'border-gray-300 hover:border-brand-400 hover:bg-gray-50'
                         }`}
                 >
                     <input
@@ -350,43 +352,98 @@ export default function ProductUploadForm() {
                     </select>
                 </div>
 
-                {/* Sizes */}
-                <div>
-                    <label
-                        htmlFor="sizes"
-                        className="mb-2 block text-sm font-medium text-gray-700"
-                    >
-                        Tamanhos (separados por vírgula)
-                    </label>
-                    <input
-                        type="text"
-                        id="sizes"
-                        name="sizes"
-                        value={formData.sizes}
-                        onChange={handleInputChange}
-                        placeholder="P, M, G, GG"
-                        className="w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-                    />
+                {/* Configuration Toggles */}
+                <div className="md:col-span-2 grid gap-4 sm:grid-cols-2">
+                    <div className="flex items-center justify-between rounded-xl border border-gray-200 p-4">
+                        <div>
+                            <span className="block font-medium text-gray-700">Habilitar Escolha de Tamanho</span>
+                            <span className="text-xs text-gray-500">Obrigatório para o cliente selecionar</span>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setFormData(prev => ({ ...prev, hasSize: !prev.hasSize }))}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${formData.hasSize ? 'bg-brand-600' : 'bg-gray-300'
+                                }`}
+                        >
+                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${formData.hasSize ? 'translate-x-6' : 'translate-x-1'
+                                }`} />
+                        </button>
+                    </div>
+
+                    <div className="flex items-center justify-between rounded-xl border border-gray-200 p-4">
+                        <div>
+                            <span className="block font-medium text-gray-700">Habilitar Escolha de Cor</span>
+                            <span className="text-xs text-gray-500">Obrigatório para o cliente selecionar</span>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setFormData(prev => ({ ...prev, hasColor: !prev.hasColor }))}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${formData.hasColor ? 'bg-brand-600' : 'bg-gray-300'
+                                }`}
+                        >
+                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${formData.hasColor ? 'translate-x-6' : 'translate-x-1'
+                                }`} />
+                        </button>
+                    </div>
                 </div>
 
+                {/* Sizes Selection */}
+                {formData.hasSize && (
+                    <div className="md:col-span-2">
+                        <label className="mb-2 block text-sm font-medium text-gray-700">
+                            Tamanhos Disponíveis
+                        </label>
+                        <div className="flex flex-wrap gap-3">
+                            {['P', 'M', 'G', 'GG', 'PLUS', 'Único'].map((size) => {
+                                const isSelected = formData.sizes.includes(size);
+                                return (
+                                    <button
+                                        key={size}
+                                        type="button"
+                                        onClick={() => {
+                                            setFormData(prev => ({
+                                                ...prev,
+                                                sizes: isSelected
+                                                    ? prev.sizes.filter(s => s !== size)
+                                                    : [...prev.sizes, size]
+                                            }));
+                                        }}
+                                        className={`rounded-lg border-2 px-4 py-2 text-sm font-medium transition-all ${isSelected
+                                            ? 'border-brand-600 bg-brand-50 text-brand-600'
+                                            : 'border-gray-200 text-gray-600 hover:border-brand-200 hover:bg-gray-50'
+                                            }`}
+                                    >
+                                        {size}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        {formData.sizes.length === 0 && (
+                            <p className="mt-2 text-xs text-red-500">Selecione pelo menos um tamanho</p>
+                        )}
+                    </div>
+                )}
+
                 {/* Colors */}
-                <div>
-                    <label
-                        htmlFor="colors"
-                        className="mb-2 block text-sm font-medium text-gray-700"
-                    >
-                        Cores (separadas por vírgula)
-                    </label>
-                    <input
-                        type="text"
-                        id="colors"
-                        name="colors"
-                        value={formData.colors}
-                        onChange={handleInputChange}
-                        placeholder="Preto, Vermelho, Nude"
-                        className="w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-                    />
-                </div>
+                {formData.hasColor && (
+                    <div className="md:col-span-2">
+                        <label
+                            htmlFor="colors"
+                            className="mb-2 block text-sm font-medium text-gray-700"
+                        >
+                            Cores (separadas por vírgula)
+                        </label>
+                        <input
+                            type="text"
+                            id="colors"
+                            name="colors"
+                            value={formData.colors}
+                            onChange={handleInputChange}
+                            placeholder="Preto, Vermelho, Nude"
+                            className="w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                        />
+                    </div>
+                )}
             </div>
 
             {/* Submit Button */}

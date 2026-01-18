@@ -2,17 +2,37 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
 import { useProducts, categories } from '@/contexts/ProductContext';
 
 type SortOption = 'newest' | 'price-low' | 'price-high' | 'name';
 
-export default function ProductsPage() {
-    const { products, getProductsByCategory } = useProducts();
+function ProductsContent() {
+    const { products, getProductsByCategory, loading } = useProducts();
+    const searchParams = useSearchParams();
+    const categoryParam = searchParams.get('categoria');
+
     const [selectedCategory, setSelectedCategory] = useState('Todos');
     const [sortBy, setSortBy] = useState<SortOption>('newest');
 
+    useEffect(() => {
+        if (categoryParam) {
+            setSelectedCategory(categoryParam);
+        } else {
+            setSelectedCategory('Todos');
+        }
+    }, [categoryParam]);
+
     const filteredProducts = getProductsByCategory(selectedCategory);
+
+    if (loading) {
+        return (
+            <div className="flex min-h-[60vh] items-center justify-center">
+                <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand-200 border-t-brand-600" />
+            </div>
+        );
+    }
 
     const sortedProducts = [...filteredProducts].sort((a, b) => {
         switch (sortBy) {
@@ -49,8 +69,8 @@ export default function ProductsPage() {
                         <button
                             onClick={() => setSelectedCategory('Todos')}
                             className={`rounded-xl border px-4 py-2 text-sm font-medium transition-all ${selectedCategory === 'Todos'
-                                    ? 'border-brand-600 bg-brand-600 text-white'
-                                    : 'border-gray-200 bg-white text-gray-700 hover:border-brand-500 hover:text-brand-600'
+                                ? 'border-brand-600 bg-brand-600 text-white'
+                                : 'border-gray-200 bg-white text-gray-700 hover:border-brand-500 hover:text-brand-600'
                                 }`}
                         >
                             Todos
@@ -60,8 +80,8 @@ export default function ProductsPage() {
                                 key={cat}
                                 onClick={() => setSelectedCategory(cat)}
                                 className={`rounded-xl border px-4 py-2 text-sm font-medium transition-all ${selectedCategory === cat
-                                        ? 'border-brand-600 bg-brand-600 text-white'
-                                        : 'border-gray-200 bg-white text-gray-700 hover:border-brand-500 hover:text-brand-600'
+                                    ? 'border-brand-600 bg-brand-600 text-white'
+                                    : 'border-gray-200 bg-white text-gray-700 hover:border-brand-500 hover:text-brand-600'
                                     }`}
                             >
                                 {cat}
@@ -139,5 +159,17 @@ export default function ProductsPage() {
                 )}
             </div>
         </div>
+    );
+}
+
+export default function ProductsPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex min-h-screen items-center justify-center bg-gray-50">
+                <div className="h-12 w-12 animate-spin rounded-full border-4 border-brand-600 border-t-transparent"></div>
+            </div>
+        }>
+            <ProductsContent />
+        </Suspense>
     );
 }

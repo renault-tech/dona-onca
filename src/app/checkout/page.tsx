@@ -2,10 +2,34 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useCart } from '@/contexts/CartContext';
+import { useProducts } from '@/contexts/ProductContext';
 import { useState } from 'react';
 
 export default function CheckoutPage() {
+    const { items, subtotal, total, clearCart } = useCart();
+    const { sellProduct } = useProducts();
+    const router = useRouter();
     const [step, setStep] = useState(1);
+    const [isProcessing, setIsProcessing] = useState(false);
+
+    const handleCompleteOrder = async () => {
+        setIsProcessing(true);
+
+        // Deduct stock for each item
+        items.forEach(item => {
+            sellProduct(item.productId, item.quantity);
+        });
+
+        // Simulate processing
+        await new Promise(resolve => setTimeout(resolve, 1500));
+
+        clearCart();
+        alert('Pedido realizado com sucesso! O estoque foi atualizado.');
+        router.push('/');
+        setIsProcessing(false);
+    };
     const [formData, setFormData] = useState({
         email: '',
         name: '',
@@ -29,14 +53,7 @@ export default function CheckoutPage() {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const items = [
-        { id: 1, name: 'Conjunto Rendado Luxo', price: 189.90, quantity: 1 },
-        { id: 2, name: 'Body Sensual Noir', price: 129.90, quantity: 2 },
-    ];
-
-    const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const shipping = 0;
-    const total = subtotal + shipping;
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -219,8 +236,8 @@ export default function CheckoutPage() {
                                                 key={method}
                                                 onClick={() => setFormData({ ...formData, paymentMethod: method })}
                                                 className={`flex-1 rounded-xl border-2 p-4 text-center transition-all ${formData.paymentMethod === method
-                                                        ? 'border-brand-600 bg-brand-50'
-                                                        : 'border-gray-200 hover:border-brand-300'
+                                                    ? 'border-brand-600 bg-brand-50'
+                                                    : 'border-gray-200 hover:border-brand-300'
                                                     }`}
                                             >
                                                 <span className="block font-medium text-gray-900">
@@ -330,10 +347,21 @@ export default function CheckoutPage() {
                                     </button>
                                 ) : (
                                     <button
-                                        onClick={() => alert('Pedido realizado com sucesso! (Demonstração)')}
-                                        className="rounded-xl bg-brand-600 px-8 py-3 font-medium text-white hover:bg-brand-700"
+                                        onClick={handleCompleteOrder}
+                                        disabled={isProcessing}
+                                        className="flex items-center gap-2 rounded-xl bg-brand-600 px-8 py-3 font-medium text-white hover:bg-brand-700 disabled:opacity-50"
                                     >
-                                        Finalizar Pedido
+                                        {isProcessing ? (
+                                            <>
+                                                <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24">
+                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                                </svg>
+                                                Processando...
+                                            </>
+                                        ) : (
+                                            'Finalizar Pedido'
+                                        )}
                                     </button>
                                 )}
                             </div>
@@ -345,8 +373,8 @@ export default function CheckoutPage() {
                         <h2 className="mb-4 text-lg font-semibold text-gray-900">Seu Pedido</h2>
 
                         <div className="space-y-3 border-b border-gray-100 pb-4">
-                            {items.map((item) => (
-                                <div key={item.id} className="flex justify-between text-sm">
+                            {items.map((item, index) => (
+                                <div key={`${item.productId}-${index}`} className="flex justify-between text-sm">
                                     <span className="text-gray-600">{item.quantity}x {item.name}</span>
                                     <span className="font-medium">R$ {(item.price * item.quantity).toFixed(2).replace('.', ',')}</span>
                                 </div>

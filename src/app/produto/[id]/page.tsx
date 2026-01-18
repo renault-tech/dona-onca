@@ -35,11 +35,11 @@ export default function ProductPage() {
     }
 
     const handleAddToCart = () => {
-        if (product.sizes.length > 0 && !selectedSize) {
+        if (product.hasSize && !selectedSize) {
             alert('Por favor, selecione um tamanho');
             return;
         }
-        if (product.colors.length > 0 && !selectedColor) {
+        if (product.hasColor && !selectedColor) {
             alert('Por favor, selecione uma cor');
             return;
         }
@@ -144,7 +144,7 @@ export default function ProductPage() {
                         </p>
 
                         {/* Color Selection */}
-                        {product.colors.length > 0 && product.colors[0] !== 'Único' && (
+                        {product.hasColor && product.colors.length > 0 && (
                             <div className="mb-6">
                                 <h3 className="mb-3 font-medium text-gray-900">
                                     Cor: <span className="text-gray-600">{selectedColor || 'Selecione'}</span>
@@ -155,8 +155,8 @@ export default function ProductPage() {
                                             key={color}
                                             onClick={() => setSelectedColor(color)}
                                             className={`rounded-xl border-2 px-4 py-2 text-sm font-medium transition-all ${selectedColor === color
-                                                    ? 'border-brand-600 bg-brand-50 text-brand-600'
-                                                    : 'border-gray-200 text-gray-700 hover:border-brand-300'
+                                                ? 'border-brand-600 bg-brand-50 text-brand-600'
+                                                : 'border-gray-200 text-gray-700 hover:border-brand-300'
                                                 }`}
                                         >
                                             {color}
@@ -167,7 +167,7 @@ export default function ProductPage() {
                         )}
 
                         {/* Size Selection */}
-                        {product.sizes.length > 0 && product.sizes[0] !== 'Único' && (
+                        {product.hasSize && product.sizes.length > 0 && (
                             <div className="mb-6">
                                 <h3 className="mb-3 font-medium text-gray-900">
                                     Tamanho: <span className="text-gray-600">{selectedSize || 'Selecione'}</span>
@@ -178,8 +178,8 @@ export default function ProductPage() {
                                             key={size}
                                             onClick={() => setSelectedSize(size)}
                                             className={`flex h-12 min-w-12 items-center justify-center rounded-xl border-2 px-3 font-medium transition-all ${selectedSize === size
-                                                    ? 'border-brand-600 bg-brand-600 text-white'
-                                                    : 'border-gray-200 text-gray-700 hover:border-brand-300'
+                                                ? 'border-brand-600 bg-brand-600 text-white'
+                                                : 'border-gray-200 text-gray-700 hover:border-brand-300'
                                                 }`}
                                         >
                                             {size}
@@ -217,10 +217,10 @@ export default function ProductPage() {
                             onClick={handleAddToCart}
                             disabled={product.stock === 0}
                             className={`mb-4 flex items-center justify-center gap-2 rounded-2xl py-4 text-lg font-semibold transition-all ${product.stock === 0
-                                    ? 'cursor-not-allowed bg-gray-300 text-gray-500'
-                                    : addedToCart
-                                        ? 'bg-green-500 text-white'
-                                        : 'bg-brand-600 text-white hover:bg-brand-700'
+                                ? 'cursor-not-allowed bg-gray-300 text-gray-500'
+                                : addedToCart
+                                    ? 'bg-green-500 text-white'
+                                    : 'bg-brand-600 text-white hover:bg-brand-700'
                                 }`}
                         >
                             {product.stock === 0 ? (
