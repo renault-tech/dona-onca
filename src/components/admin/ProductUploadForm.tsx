@@ -4,6 +4,7 @@ import { useCallback, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useProducts, categories, Product } from '@/contexts/ProductContext';
+import { supabase } from '@/lib/supabase';
 
 interface ImageFile {
     file: File;
@@ -93,30 +94,65 @@ export default function ProductUploadForm() {
 
         setIsSubmitting(true);
 
-        // Parse form data
-        const newProduct: Omit<Product, 'id' | 'createdAt'> = {
-            name: formData.name,
-            description: formData.description,
-            price: parseFloat(formData.price),
-            originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
-            category: formData.category as Product['category'],
-            stock: parseInt(formData.stock),
-            lowStockAlert: 5, // Default for new products
-            hasSize: formData.hasSize,
-            hasColor: formData.hasColor,
-            sizes: formData.hasSize ? formData.sizes : [],
-            colors: formData.hasColor ? formData.colors.split(',').map(c => c.trim()).filter(c => c !== '') : [],
-            images: images.map(img => img.preview),
-            active: true,
-        };
+        try {
+            const uploadedImageUrls: string[] = [];
 
-        // Add to context (Supabase)
-        await addProduct(newProduct);
+            for (const img of images) {
+                // If the image already has a Supabase URL, keep it
+                if (img.preview.includes('supabase.co')) {
+                    uploadedImageUrls.push(img.preview);
+                    continue;
+                }
 
-        setIsSubmitting(false);
+                // Upload new file
+                if (img.file) {
+                    const fileExt = img.file.name.split('.').pop();
+                    const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+                    const filePath = `products/${fileName}`;
 
-        // Redirect to products list
-        router.push('/admin/products');
+                    const { error: uploadError } = await supabase.storage
+                        .from('product-images')
+                        .upload(filePath, img.file);
+
+                    if (uploadError) {
+                        throw uploadError;
+                    }
+
+                    const { data: { publicUrl } } = supabase.storage
+                        .from('product-images')
+                        .getPublicUrl(filePath);
+
+                    uploadedImageUrls.push(publicUrl);
+                }
+            }
+
+            // Parse form data
+            const newProduct: Omit<Product, 'id' | 'createdAt'> = {
+                name: formData.name,
+                description: formData.description,
+                price: parseFloat(formData.price),
+                originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
+                category: formData.category as Product['category'],
+                stock: parseInt(formData.stock),
+                lowStockAlert: 5,
+                hasSize: formData.hasSize,
+                hasColor: formData.hasColor,
+                sizes: formData.hasSize ? formData.sizes : [],
+                colors: formData.hasColor ? formData.colors.split(',').map(c => c.trim()).filter(c => c !== '') : [],
+                images: uploadedImageUrls,
+                active: true,
+            };
+
+            // Add to context (Supabase)
+            await addProduct(newProduct);
+
+            setIsSubmitting(false);
+            router.push('/admin/products');
+        } catch (error: any) {
+            console.error('Erro ao salvar produto:', error);
+            alert('Erro ao salvar produto: ' + error.message);
+            setIsSubmitting(false);
+        }
     };
 
     return (
