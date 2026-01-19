@@ -23,31 +23,35 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative h-[70vh] min-h-[500px] bg-gradient-to-br from-brand-800 via-brand-600 to-brand-500">
+      <section className="relative h-[80vh] min-h-[600px] overflow-hidden bg-gradient-to-br from-brand-800 via-brand-600 to-brand-500">
+        {/* Background Watermark Logo */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-[0.08] pointer-events-none">
+          <Image
+            src="/logo.png"
+            alt=""
+            width={600}
+            height={600}
+            className="h-auto w-[80%] max-w-[500px] brightness-0 invert"
+            priority
+          />
+        </div>
+
         {/* Overlay Pattern */}
         <div className="absolute inset-0 opacity-10">
           <div className="h-full w-full bg-[radial-gradient(circle_at_50%_50%,_white_1px,_transparent_1px)] bg-[length:30px_30px]" />
         </div>
 
-        <div className="relative mx-auto flex h-full max-w-7xl flex-col items-center justify-center px-4 text-center">
-          <Image
-            src="/logo.png"
-            alt="Dona Onça"
-            width={120}
-            height={120}
-            className="mb-6 drop-shadow-2xl"
-            priority
-          />
-          <h1 className="mb-4 text-4xl font-bold text-white drop-shadow-lg md:text-6xl">
+        <div className="relative z-10 mx-auto flex h-full max-w-7xl flex-col items-center justify-center px-4 text-center">
+          <h1 className="mb-4 text-5xl font-black text-white drop-shadow-2xl md:text-8xl lg:text-9xl">
             Dona Onça
           </h1>
-          <p className="mb-8 max-w-xl text-lg text-white/90 md:text-xl">
-            Elegância e sensualidade em cada peça.
+          <p className="mb-8 max-w-2xl text-xl font-medium text-white/95 drop-shadow-lg md:text-2xl">
+            Elegância e sensualidade em cada peça. <br className="hidden md:block" />
             Descubra nossa coleção exclusiva.
           </p>
           <Link
             href="/produtos"
-            className="rounded-2xl bg-white px-8 py-4 font-semibold text-brand-600 shadow-lg transition-transform hover:scale-105 hover:shadow-xl"
+            className="rounded-2xl bg-white px-10 py-4 text-lg font-bold text-brand-600 shadow-xl transition-all hover:scale-105 hover:bg-brand-50 hover:shadow-2xl active:scale-95"
           >
             Explorar Coleção
           </Link>
