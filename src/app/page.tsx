@@ -24,17 +24,19 @@ export default function Home() {
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative h-[80vh] min-h-[600px] overflow-hidden bg-gradient-to-br from-brand-800 via-brand-600 to-brand-500">
-        {/* Background Watermark Logo */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-[0.08] pointer-events-none">
-          <Image
-            src="/logo.png"
-            alt=""
-            width={600}
-            height={600}
-            className="h-auto w-[80%] max-w-[500px] brightness-0 invert"
-            priority
-          />
-        </div>
+        <div
+          className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden"
+          style={{
+            backgroundImage: 'url("/onca-watermark.jpg")',
+            backgroundSize: 'contain',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            filter: 'invert(1) brightness(0.7) contrast(1000%)',
+            mixBlendMode: 'screen',
+            opacity: 0.2,
+            transform: 'scale(1.1)',
+          }}
+        />
 
         {/* Overlay Pattern */}
         <div className="absolute inset-0 opacity-10">
