@@ -24,19 +24,19 @@ export default function Home() {
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative h-[80vh] min-h-[600px] overflow-hidden bg-gradient-to-br from-brand-800 via-brand-600 to-brand-500">
-        <div
-          className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden"
-          style={{
-            backgroundImage: 'url("/onca-watermark.jpg")',
-            backgroundSize: 'contain',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-            filter: 'invert(1) brightness(0.7) contrast(1000%)',
-            mixBlendMode: 'screen',
-            opacity: 0.2,
-            transform: 'scale(1.1)',
-          }}
-        />
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
+          <div className="relative w-full max-w-[1100px] aspect-square flex items-center justify-center">
+            <Image
+              src="/onca-watermark.jpg"
+              alt=""
+              width={1200}
+              height={1200}
+              className="h-auto w-[110%] opacity-[0.15] grayscale invert contrast-[1000%] brightness-[1.1] mix-blend-screen scale-110"
+              style={{ clipPath: 'inset(15px)' }}
+              priority
+            />
+          </div>
+        </div>
 
         {/* Overlay Pattern */}
         <div className="absolute inset-0 opacity-10">
