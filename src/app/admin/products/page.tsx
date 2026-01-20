@@ -2,10 +2,12 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useProducts, categories } from '@/contexts/ProductContext';
 
 type Tab = 'geral' | 'estoque';
+type SortField = 'name' | 'category' | 'price' | 'stock' | 'active';
+type SortDirection = 'asc' | 'desc';
 
 export default function ProductsPage() {
     const { products, updateProduct, deleteProduct, restockProduct } = useProducts();
@@ -13,10 +15,61 @@ export default function ProductsPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [editingId, setEditingId] = useState<number | null>(null);
     const [editValue, setEditValue] = useState('');
+    const [sortField, setSortField] = useState<SortField>('name');
+    const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
-    const filteredProducts = products.filter(p =>
-        p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.category.toLowerCase().includes(searchTerm.toLowerCase())
+    const handleSort = (field: SortField) => {
+        if (sortField === field) {
+            setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortField(field);
+            setSortDirection('asc');
+        }
+    };
+
+    const filteredProducts = useMemo(() => {
+        let result = products.filter(p =>
+            p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            p.category.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+
+        result.sort((a, b) => {
+            let comparison = 0;
+            switch (sortField) {
+                case 'name':
+                    comparison = a.name.localeCompare(b.name);
+                    break;
+                case 'category':
+                    comparison = a.category.localeCompare(b.category);
+                    break;
+                case 'price':
+                    comparison = a.price - b.price;
+                    break;
+                case 'stock':
+                    comparison = a.stock - b.stock;
+                    break;
+                case 'active':
+                    comparison = (a.active ? 1 : 0) - (b.active ? 1 : 0);
+                    break;
+            }
+            return sortDirection === 'asc' ? comparison : -comparison;
+        });
+
+        return result;
+    }, [products, searchTerm, sortField, sortDirection]);
+
+    const SortHeader = ({ field, children, className = '' }: { field: SortField; children: React.ReactNode; className?: string }) => (
+        <th
+            className={`px-6 py-4 text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100 transition-colors select-none whitespace-nowrap ${className}`}
+            onClick={() => handleSort(field)}
+        >
+            <div className={`flex items-center gap-1 ${className.includes('text-center') ? 'justify-center' : ''}`}>
+                {children}
+                <span className="text-gray-400">
+                    {sortField === field ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
+                </span>
+            </div>
+        </th>
     );
 
     const handlePriceClick = (id: number, currentPrice: number) => {
@@ -142,18 +195,18 @@ export default function ProductsPage() {
                             <table className="w-full border-collapse text-left">
                                 <thead className="bg-gray-50 border-b border-gray-200">
                                     <tr>
-                                        <th className="px-6 py-4 text-sm font-semibold text-gray-900 whitespace-nowrap">Produto</th>
-                                        <th className="px-6 py-4 text-sm font-semibold text-gray-900">Categoria</th>
+                                        <SortHeader field="name">Produto</SortHeader>
+                                        <SortHeader field="category">Categoria</SortHeader>
                                         {activeTab === 'geral' ? (
                                             <>
-                                                <th className="px-6 py-4 text-sm font-semibold text-gray-900">Preço</th>
-                                                <th className="px-6 py-4 text-sm font-semibold text-gray-900">Status</th>
+                                                <SortHeader field="price">Preço</SortHeader>
+                                                <SortHeader field="active">Status</SortHeader>
                                             </>
                                         ) : (
                                             <>
-                                                <th className="px-6 py-4 text-sm font-semibold text-gray-900 text-center">Nível</th>
+                                                <SortHeader field="stock" className="text-center">Nível</SortHeader>
                                                 <th className="px-6 py-4 text-sm font-semibold text-gray-900 text-center">Aviso em</th>
-                                                <th className="px-6 py-4 text-sm font-semibold text-gray-900">Status</th>
+                                                <SortHeader field="active">Status</SortHeader>
                                             </>
                                         )}
                                         <th className="px-6 py-4 text-sm font-semibold text-gray-900 text-right">Ações</th>
