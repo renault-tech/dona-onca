@@ -1,22 +1,49 @@
+'use client';
+
 import Image from 'next/image';
+import { useProducts } from '@/contexts/ProductContext';
 
 export default function AboutPage() {
+    const { aboutContent } = useProducts();
+    const { hero, story, values, team, contact } = aboutContent;
+
     return (
         <div className="min-h-screen">
             {/* Hero */}
-            <section className="bg-gradient-to-br from-brand-700 to-brand-500 py-20">
-                <div className="mx-auto max-w-4xl px-4 text-center text-white">
-                    <Image
-                        src="/logo.png"
-                        alt="Dona Onça"
-                        width={100}
-                        height={100}
-                        className="mx-auto mb-6 brightness-0 invert"
-                    />
-                    <h1 className="mb-4 text-4xl font-bold md:text-5xl">Sobre a Dona Onça</h1>
-                    <p className="text-lg text-brand-100">
-                        Elegância, sensualidade e empoderamento feminino
-                    </p>
+            <section className="bg-gradient-to-br from-brand-700 to-brand-500 py-10 px-4">
+                <div className="mx-auto max-w-4xl text-center text-white">
+
+                    {/* White square with jaguar image */}
+                    <div className="relative h-40 w-40 mx-auto mb-8 bg-white p-2 rounded-2xl shadow-lg">
+                        <div className="relative h-full w-full overflow-hidden rounded-xl bg-gray-50 flex items-center justify-center">
+                            {hero.image ? (
+                                <Image
+                                    src={hero.image}
+                                    alt={hero.title}
+                                    fill
+                                    className="object-contain p-1"
+                                    priority
+                                />
+                            ) : (
+                                <Image
+                                    src="/onca-watermark.png"
+                                    alt="Dona Onça"
+                                    fill
+                                    className="object-contain p-1"
+                                    priority
+                                />
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        <h1 className="text-4xl font-extrabold md:text-5xl tracking-tight leading-tight">
+                            {hero.title}
+                        </h1>
+                        <p className="text-xl text-brand-100 font-medium max-w-2xl mx-auto italic">
+                            {hero.tagline}
+                        </p>
+                    </div>
                 </div>
             </section>
 
@@ -24,22 +51,8 @@ export default function AboutPage() {
             <section className="bg-white py-16">
                 <div className="mx-auto max-w-3xl px-4">
                     <h2 className="mb-6 text-center text-3xl font-bold text-gray-900">Nossa História</h2>
-                    <div className="space-y-4 text-gray-600">
-                        <p>
-                            A Dona Onça nasceu do desejo de criar uma marca que celebra a mulher em toda sua
-                            força e feminilidade. Assim como a onça - elegante, poderosa e única - acreditamos
-                            que cada mulher carrega dentro de si uma beleza selvagem que merece ser celebrada.
-                        </p>
-                        <p>
-                            Fundada em 2020, começamos como um pequeno ateliê e hoje somos referência em
-                            lingerie de alta qualidade. Cada peça é cuidadosamente desenvolvida pensando
-                            no conforto, na elegância e na autoestima de nossas clientes.
-                        </p>
-                        <p>
-                            Nosso compromisso é oferecer produtos que fazem você se sentir bem consigo mesma,
-                            seja para um momento especial ou para o dia a dia. Porque você merece se sentir
-                            poderosa sempre.
-                        </p>
+                    <div className="space-y-4 text-gray-600 whitespace-pre-wrap">
+                        {story}
                     </div>
                 </div>
             </section>
@@ -49,27 +62,19 @@ export default function AboutPage() {
                 <div className="mx-auto max-w-5xl px-4">
                     <h2 className="mb-12 text-center text-3xl font-bold text-gray-900">Nossos Valores</h2>
                     <div className="grid gap-8 md:grid-cols-3">
-                        {[
-                            {
-                                icon: '💎',
-                                title: 'Qualidade',
-                                desc: 'Materiais premium e acabamento impecável em cada peça',
-                            },
-                            {
-                                icon: '🌸',
-                                title: 'Feminilidade',
-                                desc: 'Designs que celebram a beleza e força da mulher',
-                            },
-                            {
-                                icon: '♻️',
-                                title: 'Sustentabilidade',
-                                desc: 'Compromisso com práticas responsáveis de produção',
-                            },
-                        ].map((value) => (
-                            <div key={value.title} className="rounded-2xl bg-white p-6 text-center shadow-sm">
-                                <span className="mb-4 inline-block text-4xl">{value.icon}</span>
+                        {values.map((value, idx) => (
+                            <div key={idx} className="rounded-2xl bg-white p-6 text-center shadow-sm border border-transparent hover:border-brand-200 transition-all">
+                                <div className="mb-4 flex items-center justify-center">
+                                    {value.image ? (
+                                        <div className="relative h-16 w-16 overflow-hidden rounded-xl">
+                                            <Image src={value.image} alt={value.title} fill className="object-cover" />
+                                        </div>
+                                    ) : (
+                                        <span className="text-4xl">{value.icon}</span>
+                                    )}
+                                </div>
                                 <h3 className="mb-2 text-xl font-bold text-gray-900">{value.title}</h3>
-                                <p className="text-gray-600">{value.desc}</p>
+                                <p className="text-gray-600">{value.description}</p>
                             </div>
                         ))}
                     </div>
@@ -81,14 +86,14 @@ export default function AboutPage() {
                 <div className="mx-auto max-w-5xl px-4">
                     <h2 className="mb-12 text-center text-3xl font-bold text-gray-900">Nossa Equipe</h2>
                     <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3">
-                        {[
-                            { name: 'Maria Silva', role: 'Fundadora & CEO' },
-                            { name: 'Ana Santos', role: 'Diretora Criativa' },
-                            { name: 'Julia Costa', role: 'Gestora de E-commerce' },
-                        ].map((member) => (
-                            <div key={member.name} className="text-center">
-                                <div className="mx-auto mb-4 flex h-32 w-32 items-center justify-center rounded-full bg-brand-100">
-                                    <span className="text-4xl">👩</span>
+                        {team.map((member, idx) => (
+                            <div key={idx} className="text-center group">
+                                <div className="mx-auto mb-4 relative h-32 w-32 overflow-hidden rounded-full bg-brand-100 flex items-center justify-center border-2 border-transparent group-hover:border-brand-500 transition-all">
+                                    {member.image ? (
+                                        <Image src={member.image} alt={member.name} fill className="object-cover" />
+                                    ) : (
+                                        <span className="text-4xl text-brand-600">👩</span>
+                                    )}
                                 </div>
                                 <h3 className="font-bold text-gray-900">{member.name}</h3>
                                 <p className="text-sm text-gray-500">{member.role}</p>
@@ -106,15 +111,21 @@ export default function AboutPage() {
                         Estamos sempre prontas para ajudar você
                     </p>
                     <div className="flex flex-wrap justify-center gap-6">
-                        <a href="mailto:contato@donaonca.com" className="flex items-center gap-2 hover:underline">
-                            📧 contato@donaonca.com
-                        </a>
-                        <a href="https://wa.me/5500000000000" className="flex items-center gap-2 hover:underline">
-                            📱 WhatsApp
-                        </a>
-                        <a href="https://instagram.com/donaonca" className="flex items-center gap-2 hover:underline">
-                            📸 @donaonca
-                        </a>
+                        {contact.email && (
+                            <a href={`mailto:${contact.email}`} className="flex items-center gap-2 hover:bg-white/10 px-4 py-2 rounded-xl transition-colors">
+                                📧 {contact.email}
+                            </a>
+                        )}
+                        {contact.whatsapp && (
+                            <a href={`https://wa.me/${contact.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:bg-white/10 px-4 py-2 rounded-xl transition-colors">
+                                📱 WhatsApp
+                            </a>
+                        )}
+                        {contact.instagram && (
+                            <a href={`https://instagram.com/${contact.instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:bg-white/10 px-4 py-2 rounded-xl transition-colors">
+                                📸 @{contact.instagram.replace('@', '')}
+                            </a>
+                        )}
                     </div>
                 </div>
             </section>

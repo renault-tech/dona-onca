@@ -21,6 +21,32 @@ export interface Product {
     createdAt: Date;
 }
 
+export interface AboutContent {
+    hero: {
+        title: string;
+        tagline: string;
+        image: string;
+        alignment: 'object-center' | 'object-top' | 'object-bottom' | 'object-left' | 'object-right' | 'object-contain';
+    };
+    story: string;
+    values: {
+        icon: string;
+        image?: string;
+        title: string;
+        description: string;
+    }[];
+    team: {
+        name: string;
+        role: string;
+        image: string;
+    }[];
+    contact: {
+        email: string;
+        whatsapp: string;
+        instagram: string;
+    };
+}
+
 interface ProductContextType {
     products: Product[];
     loading: boolean;
@@ -32,6 +58,8 @@ interface ProductContextType {
     sellProduct: (id: number, quantity: number) => Promise<void>;
     restockProduct: (id: number, quantity: number) => Promise<void>;
     categories: string[];
+    aboutContent: AboutContent;
+    updateAboutContent: (newContent: Partial<AboutContent>) => Promise<void>;
 }
 
 export const categories = ['Lingerie', 'Pijamas', 'Praia/Piscina', 'Sexshop'];
@@ -41,6 +69,30 @@ const ProductContext = createContext<ProductContextType | undefined>(undefined);
 export function ProductProvider({ children }: { children: ReactNode }) {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
+    const [aboutContent, setAboutContent] = useState<AboutContent>({
+        hero: {
+            title: 'Sobre a Dona Onça',
+            tagline: 'Elegância, sensualidade e empoderamento feminino',
+            image: '/logo.png',
+            alignment: 'object-center',
+        },
+        story: 'A Dona Onça nasceu do desejo de criar uma marca que celebra a mulher em toda sua força e feminilidade. Assim como a onça - elegante, poderosa e única - acreditamos que cada mulher carrega dentro de si uma beleza selvagem que merece ser celebrada.\n\nFundada em 2020, começamos como um pequeno ateliê e hoje somos referência em lingerie de alta qualidade. Cada peça é cuidadosamente desenvolvida pensando no conforto, na elegância e na autoestima de nossas clientes.',
+        values: [
+            { icon: '💎', title: 'Qualidade', description: 'Materiais premium e acabamento impecável em cada peça' },
+            { icon: '🌸', title: 'Feminilidade', description: 'Designs que celebram a beleza e força da mulher' },
+            { icon: '♻️', title: 'Sustentabilidade', description: 'Compromisso com práticas responsáveis de produção' },
+        ],
+        team: [
+            { name: 'Maria Silva', role: 'Fundadora & CEO', image: '' },
+            { name: 'Ana Santos', role: 'Diretora Criativa', image: '' },
+            { name: 'Julia Costa', role: 'Gestora de E-commerce', image: '' },
+        ],
+        contact: {
+            email: 'contato@donaonca.com',
+            whatsapp: '5500000000000',
+            instagram: 'donaonca',
+        }
+    });
 
     // Fetch products from Supabase
     const fetchProducts = async () => {
@@ -194,6 +246,49 @@ export function ProductProvider({ children }: { children: ReactNode }) {
         }
     };
 
+    const updateAboutContent = async (newContent: Partial<AboutContent>) => {
+        const updated = { ...aboutContent, ...newContent };
+        setAboutContent(updated);
+
+        try {
+            const { error } = await supabase
+                .from('site_configs')
+                .upsert({ key: 'about_page', content: updated }, { onConflict: 'key' });
+
+            if (error) {
+                console.warn('Supabase site_configs table might not exist yet. Using local state only.', error);
+                localStorage.setItem('donaonca-about', JSON.stringify(updated));
+            }
+        } catch (error) {
+            console.error('Error saving site content:', error);
+            localStorage.setItem('donaonca-about', JSON.stringify(updated));
+        }
+    };
+
+    useEffect(() => {
+        const loadContent = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('site_configs')
+                    .select('content')
+                    .eq('key', 'about_page')
+                    .maybeSingle();
+
+                if (data && data.content) {
+                    setAboutContent(data.content);
+                } else {
+                    const local = localStorage.getItem('donaonca-about');
+                    if (local) setAboutContent(JSON.parse(local));
+                }
+            } catch (err) {
+                console.warn('Using default content - persistence layer not ready');
+                const local = localStorage.getItem('donaonca-about');
+                if (local) setAboutContent(JSON.parse(local));
+            }
+        };
+        loadContent();
+    }, []);
+
     return (
         <ProductContext.Provider
             value={{
@@ -207,6 +302,8 @@ export function ProductProvider({ children }: { children: ReactNode }) {
                 sellProduct,
                 restockProduct,
                 categories,
+                aboutContent,
+                updateAboutContent,
             }}
         >
             {children}

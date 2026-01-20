@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Image from 'next/image';
 import Link from 'next/link';
@@ -14,7 +14,7 @@ export default function Home() {
       <div className="flex min-h-screen items-center justify-center bg-white">
         <div className="flex flex-col items-center gap-4">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-brand-200 border-t-brand-600" />
-          <p className="font-medium text-gray-500">Carregando Dona Onça...</p>
+          <p className="font-medium text-gray-500">Carregando Dona On├ºa...</p>
         </div>
       </div>
     );
@@ -24,15 +24,15 @@ export default function Home() {
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative h-[80vh] min-h-[600px] overflow-hidden bg-gradient-to-br from-brand-800 via-brand-600 to-brand-500">
-        {/* Jaguar Watermark */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none p-[10px]">
-          <div className="relative h-full w-full">
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
+          <div className="relative w-full max-w-[1100px] aspect-square flex items-center justify-center">
             <Image
-              src="/onca-watermark.png"
+              src="/onca-watermark.jpg"
               alt=""
-              fill
-              className="object-contain opacity-[0.15]"
-              style={{ objectPosition: 'center 55%' }}
+              width={1200}
+              height={1200}
+              className="h-auto w-[110%] opacity-[0.15] grayscale invert contrast-[1000%] brightness-[1.1] mix-blend-screen scale-110"
+              style={{ clipPath: 'inset(15px)' }}
               priority
             />
           </div>
@@ -45,17 +45,17 @@ export default function Home() {
 
         <div className="relative z-10 mx-auto flex h-full max-w-7xl flex-col items-center justify-center px-4 text-center">
           <h1 className="mb-4 text-5xl font-black text-white drop-shadow-2xl md:text-8xl lg:text-9xl">
-            Dona Onça
+            Dona On├ºa
           </h1>
           <p className="mb-8 max-w-2xl text-xl font-medium text-white/95 drop-shadow-lg md:text-2xl">
-            Elegância e sensualidade em cada peça. <br className="hidden md:block" />
-            Descubra nossa coleção exclusiva.
+            Eleg├óncia e sensualidade em cada pe├ºa. <br className="hidden md:block" />
+            Descubra nossa cole├º├úo exclusiva.
           </p>
           <Link
             href="/produtos"
             className="rounded-2xl bg-white px-10 py-4 text-lg font-bold text-brand-600 shadow-xl transition-all hover:scale-105 hover:bg-brand-50 hover:shadow-2xl active:scale-95"
           >
-            Explorar Coleção
+            Explorar Cole├º├úo
           </Link>
         </div>
 
@@ -86,10 +86,10 @@ export default function Home() {
             {categories.map((cat) => {
               const categoryProducts = getProductsByCategory(cat);
               const icons: Record<string, string> = {
-                'Lingerie': '💎',
-                'Pijamas': '🌙',
-                'Praia/Piscina': '🏖️',
-                'Sexshop': '🔥',
+                'Lingerie': '­ƒÆÄ',
+                'Pijamas': '­ƒîÖ',
+                'Praia/Piscina': '­ƒÅû´©Å',
+                'Sexshop': '­ƒöÑ',
               };
               return (
                 <Link
@@ -99,7 +99,7 @@ export default function Home() {
                 >
                   <div className="mb-4 flex h-16 w-full items-center justify-center">
                     <div className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-200 text-2xl transition-colors group-hover:bg-brand-600">
-                      {icons[cat] || '✨'}
+                      {icons[cat] || 'Ô£¿'}
                     </div>
                   </div>
                   <h3 className="font-semibold text-gray-900">{cat}</h3>
@@ -124,7 +124,7 @@ export default function Home() {
               href="/produtos"
               className="font-medium text-brand-600 hover:text-brand-700"
             >
-              Ver todos →
+              Ver todos ÔåÆ
             </Link>
           </div>
 
@@ -132,7 +132,7 @@ export default function Home() {
             <div className="rounded-2xl bg-white p-12 text-center shadow-sm">
               <p className="text-gray-500">Nenhum produto cadastrado ainda.</p>
               <Link href="/admin/products/new" className="mt-4 inline-block text-brand-600 hover:underline">
-                Adicionar primeiro produto →
+                Adicionar primeiro produto ÔåÆ
               </Link>
             </div>
           ) : (
@@ -204,13 +204,13 @@ export default function Home() {
             <div>
               <Image
                 src="/logo.png"
-                alt="Dona Onça"
+                alt="Dona On├ºa"
                 width={48}
                 height={48}
                 className="mb-4 brightness-0 invert"
               />
               <p className="text-sm">
-                Elegância e sensualidade em cada peça.
+                Eleg├óncia e sensualidade em cada pe├ºa.
               </p>
             </div>
             <div>
@@ -229,7 +229,7 @@ export default function Home() {
               <h4 className="mb-4 font-semibold text-white">Ajuda</h4>
               <ul className="space-y-2 text-sm">
                 <li><Link href="/faq" className="hover:text-white">FAQ</Link></li>
-                <li><Link href="/trocas" className="hover:text-white">Trocas e Devoluções</Link></li>
+                <li><Link href="/trocas" className="hover:text-white">Trocas e Devolu├º├Áes</Link></li>
                 <li><Link href="/contato" className="hover:text-white">Contato</Link></li>
               </ul>
             </div>
@@ -242,7 +242,7 @@ export default function Home() {
             </div>
           </div>
           <div className="mt-8 border-t border-gray-800 pt-8 text-center text-sm">
-            © 2026 Dona Onça. Todos os direitos reservados.
+            ┬® 2026 Dona On├ºa. Todos os direitos reservados.
           </div>
         </div>
       </footer>
