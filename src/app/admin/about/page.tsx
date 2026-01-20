@@ -28,10 +28,18 @@ export default function ManageAboutPage() {
     const handleImageUpload = async (file: File, type: 'hero' | 'team' | 'value', index?: number) => {
         setUploading(type + (index !== undefined ? index : ''));
         try {
-            const fileName = `${Date.now()}-${file.name}`;
+            // Sanitize filename: remove special characters and spaces
+            const sanitizedName = file.name
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '') // Remove accents
+                .replace(/[^a-zA-Z0-9.]/g, '_'); // Replace special chars with underscore
+            const fileName = `${Date.now()}-${sanitizedName}`;
             const { data, error } = await supabase.storage
                 .from('product-images')
-                .upload(fileName, file);
+                .upload(fileName, file, {
+                    contentType: file.type,
+                    upsert: true
+                });
 
             if (error) throw error;
 
@@ -50,9 +58,9 @@ export default function ManageAboutPage() {
                 newValues[index].image = publicUrl;
                 setContent({ ...content, values: newValues });
             }
-        } catch (error) {
-            console.error('Error uploading:', error);
-            alert('Erro ao fazer upload da imagem.');
+        } catch (error: any) {
+            console.error('Upload error details:', error);
+            alert(`Erro ao fazer upload: ${error?.message || error}`);
         } finally {
             setUploading(null);
         }
@@ -122,8 +130,8 @@ export default function ManageAboutPage() {
                                             key={opt.value}
                                             onClick={() => setContent({ ...content, hero: { ...content.hero, alignment: opt.value as any } })}
                                             className={`flex-1 rounded-lg border py-2 text-[10px] font-bold transition-all ${content.hero.alignment === opt.value
-                                                    ? 'border-brand-600 bg-brand-50 text-brand-600'
-                                                    : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
+                                                ? 'border-brand-600 bg-brand-50 text-brand-600'
+                                                : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
                                                 }`}
                                         >
                                             {opt.label}
