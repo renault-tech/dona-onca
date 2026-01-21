@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useState, useEffect, Suspense } from 'react';
 import { useProducts, categories } from '@/contexts/ProductContext';
+import FavoriteButton from '@/components/FavoriteButton';
 
 type SortOption = 'newest' | 'price-low' | 'price-high' | 'name';
 
@@ -229,7 +230,11 @@ function ProductsContent() {
                                                         Esgotado
                                                     </span>
                                                 </div>
+
                                             )}
+                                            <div className="absolute right-3 bottom-3 z-10">
+                                                <FavoriteButton productId={product.id} />
+                                            </div>
                                         </div>
                                         <div className="p-4">
                                             <h3 className="mb-1 text-sm font-medium text-gray-900 line-clamp-2 transition-colors group-hover:text-brand-600">

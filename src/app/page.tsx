@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useProducts, categories } from '@/contexts/ProductContext';
+import FavoriteButton from '@/components/FavoriteButton';
 
 export default function Home() {
   const { products, getProductsByCategory, loading } = useProducts();
@@ -154,6 +155,9 @@ export default function Home() {
                     <span className="absolute left-3 top-3 rounded-full bg-brand-600 px-3 py-1 text-xs font-medium text-white">
                       {product.category}
                     </span>
+                    <div className="absolute right-3 bottom-3 z-10">
+                      <FavoriteButton productId={product.id} />
+                    </div>
                   </div>
 
                   {/* Product Info */}

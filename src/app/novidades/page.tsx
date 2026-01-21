@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useProducts } from '@/contexts/ProductContext';
+import FavoriteButton from '@/components/FavoriteButton';
 
 export default function NovidadesPage() {
     const { products } = useProducts();
@@ -60,7 +61,11 @@ export default function NovidadesPage() {
                                         <span className="absolute right-3 top-3 rounded-full bg-red-500 px-2 py-1 text-xs font-bold text-white">
                                             -{Math.round((1 - product.price / product.originalPrice) * 100)}%
                                         </span>
+
                                     )}
+                                    <div className="absolute right-3 bottom-3 z-10">
+                                        <FavoriteButton productId={product.id} />
+                                    </div>
                                 </div>
                                 <div className="p-4">
                                     <p className="mb-1 text-xs text-brand-600">{product.category}</p>

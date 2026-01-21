@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useProducts } from '@/contexts/ProductContext';
 import { useCart } from '@/contexts/CartContext';
+import FavoriteButton from '@/components/FavoriteButton';
 
 export default function ProductPage() {
     const params = useParams();
@@ -122,9 +123,12 @@ export default function ProductPage() {
                         <span className="mb-2 text-sm font-medium text-brand-600">
                             {product.category}
                         </span>
-                        <h1 className="mb-4 text-3xl font-bold text-gray-900">
-                            {product.name}
-                        </h1>
+                        <div className="mb-4 flex items-start justify-between">
+                            <h1 className="text-3xl font-bold text-gray-900">
+                                {product.name}
+                            </h1>
+                            <FavoriteButton productId={product.id} className="bg-gray-50" iconSize={8} />
+                        </div>
 
                         {/* Price */}
                         <div className="mb-6 flex items-baseline gap-3">
