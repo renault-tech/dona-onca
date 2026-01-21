@@ -1,87 +1,86 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function AccountPage() {
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [isRegistering, setIsRegistering] = useState(false);
+    const { signIn, signUp, user, loading } = useAuth();
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const redirectUrl = searchParams.get('redirect') || '/minha-conta';
+
     const [formData, setFormData] = useState({
         email: '',
         password: '',
         name: '',
         confirmPassword: '',
     });
+    const [error, setError] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Redirect if already logged in
+    useEffect(() => {
+        if (!loading && user) {
+            router.push(redirectUrl);
+        }
+    }, [user, loading, router, redirectUrl]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
+        setError(null);
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setIsLoggedIn(true);
+        setError(null);
+        setIsSubmitting(true);
+
+        try {
+            if (isRegistering) {
+                // Register validation
+                if (formData.password !== formData.confirmPassword) {
+                    setError('As senhas não coincidem');
+                    setIsSubmitting(false);
+                    return;
+                }
+
+                if (formData.password.length < 6) {
+                    setError('A senha deve ter pelo menos 6 caracteres');
+                    setIsSubmitting(false);
+                    return;
+                }
+
+                const { error } = await signUp(formData.email, formData.password, formData.name);
+                if (error) throw error;
+
+                // Success - redirect handled by useEffect
+            } else {
+                // Login
+                const { error } = await signIn(formData.email, formData.password);
+                if (error) throw error;
+
+                // Success - redirect handled by useEffect
+            }
+        } catch (err: any) {
+            console.error(err);
+            if (err.message === 'Invalid login credentials') {
+                setError('Email ou senha inválidos');
+            } else if (err.message.includes('already registered')) {
+                setError('Este email já está cadastrado');
+            } else {
+                setError(err.message || 'Ocorreu um erro. Tente novamente.');
+            }
+            setIsSubmitting(false);
+        }
     };
 
-    if (isLoggedIn) {
+    if (loading) {
         return (
-            <div className="min-h-screen bg-gray-50">
-                <div className="mx-auto max-w-4xl px-4 py-8">
-                    <h1 className="mb-8 text-3xl font-bold text-gray-900">Minha Conta</h1>
-
-                    <div className="grid gap-6 md:grid-cols-2">
-                        {/* Menu Cards */}
-                        {[
-                            { title: 'Meus Pedidos', desc: 'Acompanhe seus pedidos', icon: '📦', href: '/conta/pedidos' },
-                            { title: 'Meus Dados', desc: 'Altere seus dados pessoais', icon: '👤', href: '/conta/dados' },
-                            { title: 'Endereços', desc: 'Gerencie seus endereços', icon: '📍', href: '/conta/enderecos' },
-                            { title: 'Favoritos', desc: 'Produtos que você salvou', icon: '❤️', href: '/conta/favoritos' },
-                        ].map((item) => (
-                            <Link
-                                key={item.title}
-                                href={item.href}
-                                className="flex items-center gap-4 rounded-2xl bg-white p-6 shadow-sm transition-all hover:shadow-md hover:-translate-y-1"
-                            >
-                                <span className="text-3xl">{item.icon}</span>
-                                <div>
-                                    <h3 className="font-semibold text-gray-900">{item.title}</h3>
-                                    <p className="text-sm text-gray-500">{item.desc}</p>
-                                </div>
-                            </Link>
-                        ))}
-                    </div>
-
-                    {/* Recent Orders */}
-                    <div className="mt-8 rounded-2xl bg-white p-6 shadow-sm">
-                        <h2 className="mb-4 text-lg font-semibold text-gray-900">Pedidos Recentes</h2>
-                        <div className="space-y-4">
-                            {[
-                                { id: '#1234', date: '15/01/2026', status: 'Enviado', total: 'R$ 319,80' },
-                                { id: '#1233', date: '10/01/2026', status: 'Entregue', total: 'R$ 189,90' },
-                            ].map((order) => (
-                                <div key={order.id} className="flex items-center justify-between rounded-xl bg-gray-50 p-4">
-                                    <div>
-                                        <p className="font-medium text-gray-900">Pedido {order.id}</p>
-                                        <p className="text-sm text-gray-500">{order.date}</p>
-                                    </div>
-                                    <div className="text-right">
-                                        <span className={`inline-block rounded-full px-3 py-1 text-xs font-medium ${order.status === 'Entregue' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
-                                            }`}>
-                                            {order.status}
-                                        </span>
-                                        <p className="mt-1 font-medium text-gray-900">{order.total}</p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    <button
-                        onClick={() => setIsLoggedIn(false)}
-                        className="mt-8 text-sm text-gray-500 hover:text-brand-600"
-                    >
-                        Sair da Conta
-                    </button>
-                </div>
+            <div className="flex min-h-screen items-center justify-center bg-gray-50">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600"></div>
             </div>
         );
     }
@@ -97,6 +96,12 @@ export default function AccountPage() {
                         {isRegistering ? 'Crie sua conta Dona Onça' : 'Bem-vinda de volta!'}
                     </p>
 
+                    {error && (
+                        <div className="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-600">
+                            {error}
+                        </div>
+                    )}
+
                     <form onSubmit={handleSubmit} className="space-y-4">
                         {isRegistering && (
                             <div>
@@ -108,6 +113,7 @@ export default function AccountPage() {
                                     onChange={handleChange}
                                     className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-brand-500 focus:outline-none"
                                     placeholder="Seu nome"
+                                    required
                                 />
                             </div>
                         )}
@@ -121,6 +127,7 @@ export default function AccountPage() {
                                 onChange={handleChange}
                                 className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-brand-500 focus:outline-none"
                                 placeholder="seu@email.com"
+                                required
                             />
                         </div>
 
@@ -133,6 +140,7 @@ export default function AccountPage() {
                                 onChange={handleChange}
                                 className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-brand-500 focus:outline-none"
                                 placeholder="••••••••"
+                                required
                             />
                         </div>
 
@@ -146,15 +154,24 @@ export default function AccountPage() {
                                     onChange={handleChange}
                                     className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-brand-500 focus:outline-none"
                                     placeholder="••••••••"
+                                    required
                                 />
                             </div>
                         )}
 
                         <button
                             type="submit"
-                            className="w-full rounded-xl bg-brand-600 py-3 font-semibold text-white transition-colors hover:bg-brand-700"
+                            disabled={isSubmitting}
+                            className="w-full rounded-xl bg-brand-600 py-3 font-semibold text-white transition-colors hover:bg-brand-700 disabled:opacity-70"
                         >
-                            {isRegistering ? 'Criar Conta' : 'Entrar'}
+                            {isSubmitting ? (
+                                <span className="flex items-center justify-center gap-2">
+                                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-b-transparent"></span>
+                                    Processando...
+                                </span>
+                            ) : (
+                                isRegistering ? 'Criar Conta' : 'Entrar'
+                            )}
                         </button>
                     </form>
 
@@ -168,7 +185,11 @@ export default function AccountPage() {
                         <p className="text-sm text-gray-500">
                             {isRegistering ? 'Já tem uma conta?' : 'Não tem conta?'}
                             <button
-                                onClick={() => setIsRegistering(!isRegistering)}
+                                onClick={() => {
+                                    setIsRegistering(!isRegistering);
+                                    setError(null);
+                                    setFormData({ ...formData, password: '', confirmPassword: '' });
+                                }}
                                 className="ml-1 font-medium text-brand-600 hover:underline"
                             >
                                 {isRegistering ? 'Entrar' : 'Criar conta'}

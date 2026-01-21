@@ -1,24 +1,83 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { supabase } from '@/lib/supabase';
+import { setUserAsAdmin, revokeAdminAccess } from '@/lib/auth';
+import { UserProfile } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 
-const mockCustomers = [
-    { id: 1, name: 'Maria Silva', email: 'maria@email.com', phone: '(11) 98765-4321', totalSpent: 1250.80, lastOrder: '15/01/2026', orderCount: 5 },
-    { id: 2, name: 'João Oliveira', email: 'joao@email.com', phone: '(21) 99888-7766', totalSpent: 450.00, lastOrder: '17/01/2026', orderCount: 2 },
-    { id: 3, name: 'Ana Costa', email: 'ana@email.com', phone: '(31) 97766-5544', totalSpent: 2890.50, lastOrder: '10/01/2026', orderCount: 12 },
-    { id: 4, name: 'Pedro Santos', email: 'pedro@email.com', phone: '(41) 96655-4433', totalSpent: 89.90, lastOrder: '16/01/2026', orderCount: 1 },
-    { id: 5, name: 'Carla Mendes', email: 'carla@email.com', phone: '(51) 95544-3322', totalSpent: 3500.00, lastOrder: '14/01/2026', orderCount: 8 },
-];
-
-type SortField = 'name' | 'email' | 'lastOrder' | 'totalSpent' | 'orderCount';
+type SortField = 'full_name' | 'email' | 'created_at' | 'is_admin';
 type SortDirection = 'asc' | 'desc';
 
 export default function CustomersAdminPage() {
-    const [customers] = useState(mockCustomers);
+    const { user: currentUser } = useAuth();
+    const [profiles, setProfiles] = useState<UserProfile[]>([]);
+    const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-    const [sortField, setSortField] = useState<SortField>('name');
+    const [sortField, setSortField] = useState<SortField>('full_name');
     const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+    const [processingId, setProcessingId] = useState<string | null>(null);
+
+    useEffect(() => {
+        fetchProfiles();
+    }, []);
+
+    const fetchProfiles = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('*');
+
+            if (error) throw error;
+            setProfiles(data || []);
+        } catch (error) {
+            console.error('Error fetching profiles:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleToggleAdmin = async (profile: UserProfile) => {
+        if (processingId) return;
+
+        // Don't allow removing own admin access
+        if (profile.id === currentUser?.id) {
+            alert('Você não pode remover sua própria permissão de administrador.');
+            return;
+        }
+
+        const action = profile.is_admin ? 'remover' : 'adicionar';
+        if (!confirm(`Tem certeza que deseja ${action} a permissão de administrador para ${profile.full_name || profile.email}?`)) {
+            return;
+        }
+
+        setProcessingId(profile.id);
+
+        try {
+            let result;
+            if (profile.is_admin) {
+                result = await revokeAdminAccess(profile.id);
+            } else {
+                result = await setUserAsAdmin(profile.id, profile.email);
+            }
+
+            if (result.success) {
+                // Refresh list
+                await fetchProfiles();
+                alert(profile.is_admin
+                    ? 'Permissão de administrador removida com sucesso.'
+                    : 'Permissão concedida! Um email foi enviado para o usuário com o código de verificação.');
+            } else {
+                alert('Erro ao atualizar permissão: ' + result.error);
+            }
+        } catch (error) {
+            console.error('Error toggling admin:', error);
+            alert('Ocorreu um erro inesperado.');
+        } finally {
+            setProcessingId(null);
+        }
+    };
 
     const handleSort = (field: SortField) => {
         if (sortField === field) {
@@ -29,37 +88,34 @@ export default function CustomersAdminPage() {
         }
     };
 
-    const filteredAndSortedCustomers = useMemo(() => {
-        let result = customers.filter(customer =>
-            customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            customer.phone.includes(searchTerm)
+    const filteredAndSortedProfiles = useMemo(() => {
+        let result = profiles.filter(profile =>
+            (profile.full_name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+            profile.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (profile.phone || '').includes(searchTerm)
         );
 
         result.sort((a, b) => {
             let comparison = 0;
             switch (sortField) {
-                case 'name':
-                    comparison = a.name.localeCompare(b.name);
+                case 'full_name':
+                    comparison = (a.full_name || '').localeCompare(b.full_name || '');
                     break;
                 case 'email':
                     comparison = a.email.localeCompare(b.email);
                     break;
-                case 'lastOrder':
-                    comparison = a.lastOrder.localeCompare(b.lastOrder);
+                case 'created_at':
+                    comparison = a.created_at.localeCompare(b.created_at);
                     break;
-                case 'totalSpent':
-                    comparison = a.totalSpent - b.totalSpent;
-                    break;
-                case 'orderCount':
-                    comparison = a.orderCount - b.orderCount;
+                case 'is_admin':
+                    comparison = (a.is_admin === b.is_admin) ? 0 : (a.is_admin ? -1 : 1);
                     break;
             }
             return sortDirection === 'asc' ? comparison : -comparison;
         });
 
         return result;
-    }, [customers, searchTerm, sortField, sortDirection]);
+    }, [profiles, searchTerm, sortField, sortDirection]);
 
     const SortHeader = ({ field, children, className = '' }: { field: SortField; children: React.ReactNode; className?: string }) => (
         <th
@@ -74,6 +130,14 @@ export default function CustomersAdminPage() {
             </div>
         </th>
     );
+
+    if (loading) {
+        return (
+            <div className="flex h-screen items-center justify-center bg-gray-50">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600"></div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gray-50 pb-12">
@@ -90,8 +154,8 @@ export default function CustomersAdminPage() {
                                 </svg>
                             </Link>
                             <div>
-                                <h1 className="text-2xl font-bold text-gray-900">Clientes</h1>
-                                <p className="text-sm text-gray-500">Visualize e entre em contato com seus clientes</p>
+                                <h1 className="text-2xl font-bold text-gray-900">Clientes e Permissões</h1>
+                                <p className="text-sm text-gray-500">Gerencie usuários e atribua permissões administrativas</p>
                             </div>
                         </div>
                     </div>
@@ -115,9 +179,9 @@ export default function CustomersAdminPage() {
             </div>
 
             <div className="mx-auto max-w-7xl px-4 py-8">
-                {filteredAndSortedCustomers.length === 0 ? (
+                {filteredAndSortedProfiles.length === 0 ? (
                     <div className="rounded-2xl bg-white p-12 text-center shadow-sm">
-                        <p className="text-gray-500">Nenhum cliente encontrado.</p>
+                        <p className="text-gray-500">Nenhum usuário encontrado.</p>
                     </div>
                 ) : (
                     <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-200">
@@ -125,63 +189,53 @@ export default function CustomersAdminPage() {
                             <table className="w-full border-collapse text-left">
                                 <thead className="bg-gray-50 border-b border-gray-200">
                                     <tr>
-                                        <SortHeader field="name">Nome</SortHeader>
+                                        <SortHeader field="full_name">Nome</SortHeader>
                                         <SortHeader field="email">Contato</SortHeader>
-                                        <SortHeader field="orderCount" className="text-center">Pedidos</SortHeader>
-                                        <SortHeader field="lastOrder" className="text-center">Último Pedido</SortHeader>
-                                        <SortHeader field="totalSpent" className="text-right">Total Gasto</SortHeader>
+                                        <SortHeader field="created_at" className="text-center">Data Cadastro</SortHeader>
+                                        <SortHeader field="is_admin" className="text-center">Admin</SortHeader>
                                         <th className="px-6 py-4 text-sm font-semibold text-gray-900 text-right">Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
-                                    {filteredAndSortedCustomers.map((customer) => (
-                                        <tr key={customer.id} className="transition-colors hover:bg-gray-50/50">
+                                    {filteredAndSortedProfiles.map((profile) => (
+                                        <tr key={profile.id} className="transition-colors hover:bg-gray-50/50">
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
                                                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-100 font-bold text-brand-600">
-                                                        {customer.name.charAt(0)}
+                                                        {(profile.full_name || profile.email).charAt(0).toUpperCase()}
                                                     </div>
-                                                    <span className="font-medium text-gray-900">{customer.name}</span>
+                                                    <span className="font-medium text-gray-900">{profile.full_name || 'Sem nome'}</span>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 text-sm">
-                                                <div className="text-gray-900">{customer.email}</div>
-                                                <div className="text-gray-500">{customer.phone}</div>
-                                            </td>
-                                            <td className="px-6 py-4 text-center">
-                                                <span className="inline-flex rounded-full bg-brand-50 px-2.5 py-0.5 text-sm font-medium text-brand-700">
-                                                    {customer.orderCount}
-                                                </span>
+                                                <div className="text-gray-900">{profile.email}</div>
+                                                <div className="text-gray-500">{profile.phone || '-'}</div>
                                             </td>
                                             <td className="px-6 py-4 text-center text-sm text-gray-600">
-                                                {customer.lastOrder}
+                                                {new Date(profile.created_at).toLocaleDateString('pt-BR')}
                                             </td>
-                                            <td className="px-6 py-4 text-right font-semibold text-gray-900">
-                                                R$ {customer.totalSpent.toFixed(2).replace('.', ',')}
+                                            <td className="px-6 py-4 text-center">
+                                                <span className={`inline-flex rounded-full px-2.5 py-0.5 text-sm font-medium ${profile.is_admin
+                                                        ? 'bg-purple-100 text-purple-700'
+                                                        : 'bg-gray-100 text-gray-600'
+                                                    }`}>
+                                                    {profile.is_admin ? 'Admin' : 'Cliente'}
+                                                </span>
                                             </td>
                                             <td className="px-6 py-4 text-right">
-                                                <div className="flex justify-end gap-1">
-                                                    <a
-                                                        href={`mailto:${customer.email}`}
-                                                        className="rounded-lg p-2 text-gray-500 hover:bg-gray-100"
-                                                        title="Enviar Email"
-                                                    >
-                                                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                                        </svg>
-                                                    </a>
-                                                    <a
-                                                        href={`https://wa.me/55${customer.phone.replace(/\D/g, '')}`}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="rounded-lg p-2 text-green-600 hover:bg-green-50"
-                                                        title="WhatsApp"
-                                                    >
-                                                        <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                                                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-                                                        </svg>
-                                                    </a>
-                                                </div>
+                                                <button
+                                                    onClick={() => handleToggleAdmin(profile)}
+                                                    disabled={processingId === profile.id || profile.id === currentUser?.id}
+                                                    className={`rounded-lg p-2 transition-colors ${profile.is_admin
+                                                            ? 'text-red-500 hover:bg-red-50'
+                                                            : 'text-gray-400 hover:text-brand-600 hover:bg-brand-50'
+                                                        } ${processingId === profile.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                    title={profile.is_admin ? "Remover Admin" : "Tornar Admin"}
+                                                >
+                                                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                                    </svg>
+                                                </button>
                                             </td>
                                         </tr>
                                     ))}

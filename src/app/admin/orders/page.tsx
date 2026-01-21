@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useProducts } from '@/contexts/ProductContext';
+import { supabase } from '@/lib/supabase';
 
 // Order item type representing each product in an order
 interface OrderItem {
@@ -14,68 +15,15 @@ interface OrderItem {
 
 interface Order {
     id: string;
-    customer: string;
+    customer: string; // Now a string derived from profile or metadata
     date: string;
     total: number;
     status: 'Pendente' | 'Pago' | 'Enviado' | 'Entregue' | 'Cancelado' | 'Devolvido';
     items: OrderItem[];
-    stockDeducted: boolean; // Track if stock was already deducted
+    stockDeducted: boolean;
+    user_id: string;
+    created_at: string;
 }
-
-// Mock orders with actual product items
-const initialMockOrders: Order[] = [
-    {
-        id: '1234',
-        customer: 'Maria Silva',
-        date: '17/01/2026',
-        total: 189.90,
-        status: 'Pendente',
-        stockDeducted: false,
-        items: [{ productId: 1, productName: 'Calcinha Renda Luxo', quantity: 2, price: 94.95 }]
-    },
-    {
-        id: '1235',
-        customer: 'João Oliveira',
-        date: '17/01/2026',
-        total: 450.00,
-        status: 'Pago',
-        stockDeducted: false,
-        items: [
-            { productId: 2, productName: 'Sutiã Push-Up', quantity: 2, price: 149.90 },
-            { productId: 3, productName: 'Conjunto Sexy', quantity: 2, price: 75.05 }
-        ]
-    },
-    {
-        id: '1236',
-        customer: 'Ana Costa',
-        date: '16/01/2026',
-        total: 89.90,
-        status: 'Enviado',
-        stockDeducted: true,
-        items: [{ productId: 1, productName: 'Calcinha Renda Luxo', quantity: 1, price: 89.90 }]
-    },
-    {
-        id: '1237',
-        customer: 'Pedro Santos',
-        date: '16/01/2026',
-        total: 1215.00,
-        status: 'Entregue',
-        stockDeducted: true,
-        items: [
-            { productId: 4, productName: 'Body Elegance', quantity: 4, price: 199.90 },
-            { productId: 5, productName: 'Camisola Seda', quantity: 4, price: 103.85 }
-        ]
-    },
-    {
-        id: '1238',
-        customer: 'Carla Mendes',
-        date: '15/01/2026',
-        total: 320.00,
-        status: 'Cancelado',
-        stockDeducted: false,
-        items: [{ productId: 2, productName: 'Sutiã Push-Up', quantity: 3, price: 106.67 }]
-    },
-];
 
 type SortField = 'id' | 'customer' | 'date' | 'total' | 'status' | 'items';
 type SortDirection = 'asc' | 'desc';
@@ -85,11 +33,46 @@ const STATUS_OPTIONS: OrderStatus[] = ['Pendente', 'Pago', 'Enviado', 'Entregue'
 
 export default function OrdersAdminPage() {
     const { updateProduct, products } = useProducts();
-    const [orders, setOrders] = useState<Order[]>(initialMockOrders);
+    const [orders, setOrders] = useState<Order[]>([]);
+    const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-    const [sortField, setSortField] = useState<SortField>('id');
+    const [sortField, setSortField] = useState<SortField>('created_at' as any);
     const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
     const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+
+    // Fetch orders from Supabase
+    useEffect(() => {
+        const fetchOrders = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('orders')
+                    .select('*, profiles(full_name, email)');
+
+                if (error) throw error;
+
+                if (data) {
+                    const formattedOrders: Order[] = data.map((order: any) => ({
+                        id: order.id,
+                        customer: order.profiles?.full_name || order.profiles?.email || 'Cliente Desconhecido',
+                        date: new Date(order.created_at).toLocaleDateString('pt-BR'),
+                        total: order.total,
+                        status: order.status,
+                        items: order.items || [],
+                        stockDeducted: order.status === 'Enviado' || order.status === 'Entregue', // Simplified logic for now
+                        user_id: order.user_id,
+                        created_at: order.created_at
+                    }));
+                    setOrders(formattedOrders);
+                }
+            } catch (error) {
+                console.error('Error fetching orders:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchOrders();
+    }, []);
 
     const handleSort = (field: SortField) => {
         if (sortField === field) {
@@ -103,6 +86,9 @@ export default function OrdersAdminPage() {
     // Handle stock deduction when status changes to "Enviado"
     const deductStock = async (order: Order) => {
         for (const item of order.items) {
+            // Find product by matching name mostly, since IDs in old orders might differ.
+            // Ideally we should store productId properly. 
+            // Here assuming productId is correct from order.items
             const product = products.find(p => p.id === item.productId);
             if (product) {
                 await updateProduct(item.productId, {
@@ -112,60 +98,36 @@ export default function OrdersAdminPage() {
         }
     };
 
-    // Handle stock restoration when order is cancelled or returned
-    const restoreStock = async (order: Order) => {
-        for (const item of order.items) {
-            const product = products.find(p => p.id === item.productId);
-            if (product) {
-                await updateProduct(item.productId, {
-                    stock: product.stock + item.quantity
-                });
-            }
-        }
-    };
-
     const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
         const order = orders.find(o => o.id === orderId);
         if (!order) return;
 
-        const oldStatus = order.status;
+        try {
+            // Update in Supabase
+            const { error } = await supabase
+                .from('orders')
+                .update({ status: newStatus })
+                .eq('id', orderId);
 
-        // Determine if we need to adjust stock
-        if (newStatus === 'Enviado' && !order.stockDeducted) {
-            // Deduct stock when shipping
-            await deductStock(order);
-            setOrders(orders.map(o =>
-                o.id === orderId
-                    ? { ...o, status: newStatus, stockDeducted: true }
-                    : o
-            ));
-            alert(`Pedido #${orderId} marcado como Enviado. Estoque atualizado!`);
-        } else if ((newStatus === 'Cancelado' || newStatus === 'Devolvido') && order.stockDeducted) {
-            // Restore stock when cancelled or returned (only if stock was deducted)
-            await restoreStock(order);
-            setOrders(orders.map(o =>
-                o.id === orderId
-                    ? { ...o, status: newStatus, stockDeducted: false }
-                    : o
-            ));
-            alert(`Pedido #${orderId} ${newStatus === 'Cancelado' ? 'cancelado' : 'devolvido'}. Estoque restaurado!`);
-        } else if (newStatus === 'Cancelado' && !order.stockDeducted) {
-            // Cancelled before shipping - no stock change needed
-            setOrders(orders.map(o =>
-                o.id === orderId ? { ...o, status: newStatus } : o
-            ));
-            alert(`Pedido #${orderId} cancelado.`);
-        } else {
-            // Normal status change (no stock impact)
-            setOrders(orders.map(o =>
-                o.id === orderId ? { ...o, status: newStatus } : o
-            ));
+            if (error) throw error;
+
+            // Determine if we need to adjust stock (simplified logic for real implementation)
+            if (newStatus === 'Enviado' && !order.stockDeducted) {
+                await deductStock(order);
+                setOrders(orders.map(o => o.id === orderId ? { ...o, status: newStatus, stockDeducted: true } : o));
+            } else {
+                setOrders(orders.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+            }
+
+        } catch (error) {
+            console.error('Error updating status:', error);
+            alert('Erro ao atualizar status do pedido.');
         }
     };
 
-    const handleCancelOrder = (orderId: string) => {
-        if (confirm(`Deseja realmente cancelar o pedido #${orderId}?`)) {
-            handleStatusChange(orderId, 'Cancelado');
+    const handleCancelOrder = async (orderId: string) => {
+        if (confirm(`Deseja realmente cancelar o pedido #${orderId.slice(0, 8)}?`)) {
+            await handleStatusChange(orderId, 'Cancelado');
         }
     };
 
@@ -186,7 +148,8 @@ export default function OrdersAdminPage() {
                     comparison = a.customer.localeCompare(b.customer);
                     break;
                 case 'date':
-                    comparison = a.date.localeCompare(b.date);
+                    // compare raw dates
+                    comparison = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
                     break;
                 case 'total':
                     comparison = a.total - b.total;
@@ -197,6 +160,8 @@ export default function OrdersAdminPage() {
                 case 'items':
                     comparison = a.items.length - b.items.length;
                     break;
+                default:
+                    comparison = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
             }
             return sortDirection === 'asc' ? comparison : -comparison;
         });
@@ -232,6 +197,14 @@ export default function OrdersAdminPage() {
         </th>
     );
 
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600"></div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-gray-50 pb-12">
             <div className="border-b border-gray-200 bg-white">
@@ -255,7 +228,7 @@ export default function OrdersAdminPage() {
 
                     {/* Info Box */}
                     <div className="mt-4 rounded-lg bg-blue-50 border border-blue-200 p-3 text-sm text-blue-700">
-                        <strong>ℹ️ Gestão de Estoque:</strong> O estoque é baixado ao marcar como &quot;Enviado&quot; e restaurado em caso de &quot;Cancelado&quot; ou &quot;Devolvido&quot;.
+                        <strong>ℹ️ Gestão de Estoque:</strong> O estoque é baixado ao marcar como &quot;Enviado&quot;.
                     </div>
 
                     {/* Search */}
@@ -300,7 +273,7 @@ export default function OrdersAdminPage() {
                                     {filteredAndSortedOrders.map((order) => (
                                         <>
                                             <tr key={order.id} className="transition-colors hover:bg-gray-50/50">
-                                                <td className="px-6 py-4 font-medium text-gray-900">#{order.id}</td>
+                                                <td className="px-6 py-4 font-medium text-gray-900">#{order.id.slice(0, 8)}</td>
                                                 <td className="px-6 py-4 text-gray-600">{order.customer}</td>
                                                 <td className="px-6 py-4 text-gray-500">{order.date}</td>
                                                 <td className="px-6 py-4 text-center text-gray-600">{getItemCount(order)}</td>

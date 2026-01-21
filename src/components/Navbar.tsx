@@ -4,12 +4,14 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useCart } from '@/contexts/CartContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { categories } from '@/contexts/ProductContext';
 
 export default function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [showCategories, setShowCategories] = useState(false);
     const { itemCount } = useCart();
+    const { user, isAdmin } = useAuth();
 
     return (
         <header className="sticky top-0 z-50 bg-white shadow-sm">
@@ -78,12 +80,14 @@ export default function Navbar() {
                     >
                         Sobre
                     </Link>
-                    <Link
-                        href="/admin"
-                        className="rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-700"
-                    >
-                        Admin
-                    </Link>
+                    {isAdmin && (
+                        <Link
+                            href="/admin"
+                            className="rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-700"
+                        >
+                            Admin
+                        </Link>
+                    )}
                 </div>
 
                 {/* Icons */}
@@ -111,7 +115,7 @@ export default function Navbar() {
 
                     {/* Profile */}
                     <Link
-                        href="/conta"
+                        href={user ? "/minha-conta" : "/conta"}
                         className="rounded-full p-2 text-gray-600 hover:bg-brand-50 hover:text-brand-600"
                         aria-label="Minha conta"
                     >
@@ -227,13 +231,15 @@ export default function Navbar() {
                         >
                             Sobre
                         </Link>
-                        <Link
-                            href="/admin"
-                            className="mt-2 rounded-lg bg-brand-600 px-3 py-2 text-center text-sm font-medium text-white"
-                            onClick={() => setIsMenuOpen(false)}
-                        >
-                            Admin
-                        </Link>
+                        {isAdmin && (
+                            <Link
+                                href="/admin"
+                                className="mt-2 rounded-lg bg-brand-600 px-3 py-2 text-center text-sm font-medium text-white"
+                                onClick={() => setIsMenuOpen(false)}
+                            >
+                                Admin
+                            </Link>
+                        )}
                     </div>
                 </div>
             )}
