@@ -1,11 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function AccountPage() {
+function AccountForm() {
     const [isRegistering, setIsRegistering] = useState(false);
     const { signIn, signUp, user, loading } = useAuth();
     const router = useRouter();
@@ -199,5 +199,17 @@ export default function AccountPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function AccountPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex min-h-screen items-center justify-center bg-gray-50">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600"></div>
+            </div>
+        }>
+            <AccountForm />
+        </Suspense>
     );
 }
