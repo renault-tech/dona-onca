@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -9,57 +9,24 @@ interface AdminGuardProps {
 }
 
 export default function AdminGuard({ children }: AdminGuardProps) {
-    const { user, profile, loading, isAdmin } = useAuth();
+    const { user, isAdmin, loading } = useAuth();
     const router = useRouter();
-    const [checking, setChecking] = useState(true);
-    const [timedOut, setTimedOut] = useState(false);
-
-    // Timeout protection - prevent infinite loading
-    useEffect(() => {
-        const timeout = setTimeout(() => {
-            if (checking) {
-                console.warn('AdminGuard timeout - redirecionando');
-                setTimedOut(true);
-                setChecking(false);
-            }
-        }, 5000);
-
-        return () => clearTimeout(timeout);
-    }, [checking]);
 
     useEffect(() => {
         if (loading) return;
 
-        // Not logged in - redirect to login
         if (!user) {
             router.push('/conta?redirect=/admin');
             return;
         }
 
-        // Logged in but not admin - redirect to home
         if (!isAdmin) {
-            // Check if is_admin is true but not verified yet
-            if (profile?.is_admin && !profile?.admin_verified) {
-                router.push('/conta/verificar-admin');
-                return;
-            }
-
             router.push('/');
             return;
         }
+    }, [user, isAdmin, loading, router]);
 
-        // User is verified admin
-        setChecking(false);
-    }, [user, profile, loading, isAdmin, router]);
-
-    // Timeout - redirect to home
-    if (timedOut) {
-        router.push('/');
-        return null;
-    }
-
-    // Show loading while checking permissions
-    if (loading || checking) {
+    if (loading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
                 <div className="text-center">
@@ -68,6 +35,10 @@ export default function AdminGuard({ children }: AdminGuardProps) {
                 </div>
             </div>
         );
+    }
+
+    if (!user || !isAdmin) {
+        return null;
     }
 
     return <>{children}</>;
