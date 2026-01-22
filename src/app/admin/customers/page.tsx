@@ -2,15 +2,19 @@
 
 import Link from 'next/link';
 import { useState, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { UserProfile } from '@/contexts/AuthContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useProducts } from '@/contexts/ProductContext';
 
 type SortField = 'full_name' | 'email' | 'created_at' | 'is_admin';
 type SortDirection = 'asc' | 'desc';
 
 export default function CustomersAdminPage() {
     const { user: currentUser } = useAuth();
+    const { aboutContent } = useProducts();
+    const router = useRouter();
     const [profiles, setProfiles] = useState<UserProfile[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -83,7 +87,20 @@ export default function CustomersAdminPage() {
     };
 
     const filteredAndSortedProfiles = useMemo(() => {
-        let result = profiles.filter(profile =>
+        // Get team member names to filter them out
+        const teamNames = (aboutContent.team || []).map(t => t.name.toLowerCase());
+
+        // Filter out admins and team members - they appear in Team section
+        let result = profiles.filter(profile => {
+            // Exclude admins
+            if (profile.is_admin) return false;
+            // Exclude team members by name match
+            if (profile.full_name && teamNames.includes(profile.full_name.toLowerCase())) return false;
+            return true;
+        });
+
+        // Apply search filter
+        result = result.filter(profile =>
             (profile.full_name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
             profile.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
             (profile.phone || '').includes(searchTerm)
@@ -109,7 +126,7 @@ export default function CustomersAdminPage() {
         });
 
         return result;
-    }, [profiles, searchTerm, sortField, sortDirection]);
+    }, [profiles, searchTerm, sortField, sortDirection, aboutContent]);
 
     const SortHeader = ({ field, children, className = '' }: { field: SortField; children: React.ReactNode; className?: string }) => (
         <th
@@ -195,7 +212,7 @@ export default function CustomersAdminPage() {
                                         <tr
                                             key={profile.id}
                                             className="transition-colors hover:bg-gray-50/50 cursor-pointer"
-                                            onClick={() => window.location.href = `/admin/customers/${profile.id}`}
+                                            onClick={() => router.push(`/admin/customers/${profile.id}`)}
                                         >
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">

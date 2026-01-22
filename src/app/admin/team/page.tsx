@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useProducts } from '@/contexts/ProductContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -29,6 +30,7 @@ interface MergedUser {
 export default function TeamPage() {
     const { user: currentUser } = useAuth();
     const { aboutContent, updateAboutContent } = useProducts();
+    const router = useRouter();
     const [users, setUsers] = useState<MergedUser[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -351,7 +353,11 @@ export default function TeamPage() {
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                             {filteredUsers.map((user) => (
-                                <tr key={user.email || user.full_name} className="hover:bg-gray-50">
+                                <tr
+                                    key={user.email || user.full_name}
+                                    className="hover:bg-gray-50 cursor-pointer"
+                                    onClick={() => user.id && router.push(`/admin/customers/${user.id}`)}
+                                >
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
                                             {user.display_image ? (
@@ -370,7 +376,7 @@ export default function TeamPage() {
                                     </td>
 
                                     {/* Admin Toggle */}
-                                    <td className="px-6 py-4 text-center">
+                                    <td className="px-6 py-4 text-center" onClick={(e) => e.stopPropagation()}>
                                         <button
                                             onClick={() => handleToggleAdmin(user)}
                                             disabled={!!processing || user.source === 'site_only'}
@@ -382,7 +388,7 @@ export default function TeamPage() {
                                     </td>
 
                                     {/* Visibility Toggle */}
-                                    <td className="px-6 py-4 text-center">
+                                    <td className="px-6 py-4 text-center" onClick={(e) => e.stopPropagation()}>
                                         <button
                                             onClick={() => handleToggleVisibility(user)}
                                             disabled={!!processing}
@@ -392,7 +398,7 @@ export default function TeamPage() {
                                         </button>
                                     </td>
 
-                                    <td className="px-6 py-4 text-right">
+                                    <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
                                         {editingEmail === (user.email || user.full_name) ? (
                                             <div className="flex flex-col gap-2 absolute right-12 bg-white shadow-xl p-4 rounded-xl z-10 border border-gray-100 min-w-[250px]">
                                                 <p className="text-xs font-bold text-gray-500 mb-1">Editar Exibição</p>
