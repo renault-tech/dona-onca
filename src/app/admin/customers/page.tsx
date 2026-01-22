@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
-import { setUserAsAdmin, revokeAdminAccess } from '@/lib/auth';
 import { UserProfile } from '@/contexts/AuthContext';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -55,25 +54,20 @@ export default function CustomersAdminPage() {
         setProcessingId(profile.id);
 
         try {
-            let result;
-            if (profile.is_admin) {
-                result = await revokeAdminAccess(profile.id);
-            } else {
-                result = await setUserAsAdmin(profile.id, profile.email);
-            }
+            const { error } = await supabase
+                .from('profiles')
+                .update({ is_admin: !profile.is_admin })
+                .eq('id', profile.id);
 
-            if (result.success) {
-                // Refresh list
-                await fetchProfiles();
-                alert(profile.is_admin
-                    ? 'Permissão de administrador removida com sucesso.'
-                    : 'Permissão concedida! Um email foi enviado para o usuário com o código de verificação.');
-            } else {
-                alert('Erro ao atualizar permissão: ' + result.error);
-            }
+            if (error) throw error;
+
+            await fetchProfiles();
+            alert(profile.is_admin
+                ? 'Permissão de administrador removida com sucesso.'
+                : 'Permissão de administrador concedida com sucesso.');
         } catch (error) {
             console.error('Error toggling admin:', error);
-            alert('Ocorreu um erro inesperado.');
+            alert('Ocorreu um erro ao atualizar permissão.');
         } finally {
             setProcessingId(null);
         }
@@ -216,8 +210,8 @@ export default function CustomersAdminPage() {
                                             </td>
                                             <td className="px-6 py-4 text-center">
                                                 <span className={`inline-flex rounded-full px-2.5 py-0.5 text-sm font-medium ${profile.is_admin
-                                                        ? 'bg-purple-100 text-purple-700'
-                                                        : 'bg-gray-100 text-gray-600'
+                                                    ? 'bg-purple-100 text-purple-700'
+                                                    : 'bg-gray-100 text-gray-600'
                                                     }`}>
                                                     {profile.is_admin ? 'Admin' : 'Cliente'}
                                                 </span>
@@ -227,8 +221,8 @@ export default function CustomersAdminPage() {
                                                     onClick={() => handleToggleAdmin(profile)}
                                                     disabled={processingId === profile.id || profile.id === currentUser?.id}
                                                     className={`rounded-lg p-2 transition-colors ${profile.is_admin
-                                                            ? 'text-red-500 hover:bg-red-50'
-                                                            : 'text-gray-400 hover:text-brand-600 hover:bg-brand-50'
+                                                        ? 'text-red-500 hover:bg-red-50'
+                                                        : 'text-gray-400 hover:text-brand-600 hover:bg-brand-50'
                                                         } ${processingId === profile.id ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                     title={profile.is_admin ? "Remover Admin" : "Tornar Admin"}
                                                 >

@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useProducts } from '@/contexts/ProductContext';
-import { setUserAsAdmin, revokeAdminAccess } from '@/lib/auth';
 import { useAuth } from '@/contexts/AuthContext';
 import Image from 'next/image';
 
@@ -136,11 +135,12 @@ export default function TeamPage() {
 
         setProcessing(user.email || user.full_name);
         try {
-            if (user.is_admin) {
-                await revokeAdminAccess(user.id);
-            } else {
-                await setUserAsAdmin(user.id, user.email);
-            }
+            const { error } = await supabase
+                .from('profiles')
+                .update({ is_admin: !user.is_admin })
+                .eq('id', user.id);
+
+            if (error) throw error;
             await fetchData();
         } catch (error) {
             console.error(error);
