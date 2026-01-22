@@ -94,32 +94,21 @@ export function ProductProvider({ children }: { children: ReactNode }) {
         }
     });
 
-    // Fetch products from Supabase with timeout protection
+    // Fetch products from Supabase - non-blocking
     const fetchProducts = async () => {
-        let didTimeout = false;
-        const timeoutId = setTimeout(() => {
-            didTimeout = true;
-            console.warn('Products fetch timeout after 15s');
-            setLoading(false);
-        }, 15000);
-
         try {
-            setLoading(true);
-            console.log('Fetching products from Supabase...');
+            console.log('Fetching products...');
             const { data, error } = await supabase
                 .from('products')
                 .select('*')
                 .order('created_at', { ascending: false });
 
-            if (didTimeout) return;
             if (error) {
-                console.error('Supabase products error:', error);
-                throw error;
+                console.error('Products error:', error);
+                return;
             }
-            console.log('Products fetched:', data?.length || 0);
 
             if (data) {
-                // Map snake_case from DB to camelCase for the app
                 const formattedProducts: Product[] = data.map((p: any) => ({
                     id: p.id,
                     name: p.name,
@@ -138,19 +127,19 @@ export function ProductProvider({ children }: { children: ReactNode }) {
                     createdAt: new Date(p.created_at)
                 }));
                 setProducts(formattedProducts);
+                console.log('Products loaded:', formattedProducts.length);
             }
         } catch (error) {
-            console.error('Error fetching products from Supabase:', error);
+            console.error('Error fetching products:', error);
         } finally {
-            if (!didTimeout) {
-                clearTimeout(timeoutId);
-                setLoading(false);
-            }
+            setLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchProducts();
+        // Loading termina em 500ms max, produtos carregam em background
+        const quickLoad = setTimeout(() => setLoading(false), 500);
+        fetchProducts().finally(() => clearTimeout(quickLoad));
     }, []);
 
     const addProduct = async (product: Omit<Product, 'id' | 'createdAt'>) => {
