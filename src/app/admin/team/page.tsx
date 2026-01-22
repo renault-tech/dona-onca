@@ -157,21 +157,21 @@ export default function TeamPage() {
 
             if (user.is_visible) {
                 // Remove from team array
-                // Match by name matching
                 const newTeam = currentTeam.filter(t => t.name.toLowerCase() !== user.full_name.toLowerCase());
                 await updateAboutContent({ team: newTeam });
             } else {
-                // Add to team array
-                // We need default values for role/image if they don't have them
-                const newMember = {
-                    name: user.full_name,
-                    role: user.role || 'Colaborador', // Default role
-                    image: user.display_image || ''
-                };
-                await updateAboutContent({ team: [...currentTeam, newMember] });
+                // Check if member already exists to prevent duplicates
+                const alreadyExists = currentTeam.some(t => t.name.toLowerCase() === user.full_name.toLowerCase());
+                if (!alreadyExists) {
+                    const newMember = {
+                        name: user.full_name,
+                        role: user.role || 'Colaborador',
+                        image: user.display_image || ''
+                    };
+                    await updateAboutContent({ team: [...currentTeam, newMember] });
+                }
             }
-            // Trigger refresh is handled by useEffect on aboutContent, but we can optimistically update
-            await fetchData();
+            // Don't call fetchData() - useEffect on aboutContent handles refresh
         } catch (error) {
             console.error(error);
             alert('Erro ao alterar visibilidade.');

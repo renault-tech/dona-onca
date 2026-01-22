@@ -277,24 +277,47 @@ export default function ManageAboutPage() {
                         <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                             <span className="text-2xl">👩‍💻</span> Nossa Equipe
                         </h2>
-                        <button
-                            onClick={() => setContent({ ...content, team: [...content.team, { name: '', role: '', image: '' }] })}
-                            className="text-sm font-bold text-brand-600 hover:text-brand-700"
-                        >
-                            + Adicionar Membro
-                        </button>
+                        <span className="text-xs text-gray-500">Arraste para reordenar</span>
                     </div>
                     <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
                         {content.team.map((member, i) => (
-                            <div key={i} className="relative group rounded-2xl border border-gray-100 p-4 pt-10">
-                                <button
-                                    onClick={() => setContent({ ...content, team: content.team.filter((_, idx) => idx !== i) })}
-                                    className="absolute right-2 top-2 text-gray-400 hover:text-red-500"
-                                >
-                                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            <div
+                                key={i}
+                                draggable
+                                onDragStart={(e) => {
+                                    e.dataTransfer.setData('text/plain', i.toString());
+                                    e.currentTarget.classList.add('opacity-50');
+                                }}
+                                onDragEnd={(e) => {
+                                    e.currentTarget.classList.remove('opacity-50');
+                                }}
+                                onDragOver={(e) => {
+                                    e.preventDefault();
+                                    e.currentTarget.classList.add('ring-2', 'ring-brand-500');
+                                }}
+                                onDragLeave={(e) => {
+                                    e.currentTarget.classList.remove('ring-2', 'ring-brand-500');
+                                }}
+                                onDrop={(e) => {
+                                    e.preventDefault();
+                                    e.currentTarget.classList.remove('ring-2', 'ring-brand-500');
+                                    const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+                                    const toIndex = i;
+                                    if (fromIndex !== toIndex) {
+                                        const newTeam = [...content.team];
+                                        const [moved] = newTeam.splice(fromIndex, 1);
+                                        newTeam.splice(toIndex, 0, moved);
+                                        setContent({ ...content, team: newTeam });
+                                    }
+                                }}
+                                className="relative group rounded-2xl border border-gray-100 p-4 pt-6 cursor-grab active:cursor-grabbing transition-all hover:shadow-md"
+                            >
+                                {/* Drag handle */}
+                                <div className="absolute left-1/2 -translate-x-1/2 top-1 text-gray-300 group-hover:text-brand-400">
+                                    <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M8 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm0 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm0 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm6-12a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm0 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm0 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0z" />
                                     </svg>
-                                </button>
+                                </div>
 
                                 <div className="mb-4 flex flex-col items-center">
                                     <div className="relative h-24 w-24 overflow-hidden rounded-full bg-brand-50 flex items-center justify-center border-2 border-brand-100 group-hover:border-brand-500 transition-colors">
@@ -349,6 +372,9 @@ export default function ManageAboutPage() {
                             </div>
                         ))}
                     </div>
+                    {content.team.length === 0 && (
+                        <p className="text-center text-gray-400 py-8">Nenhum membro visível. Adicione membros na área de Gestão de Equipe.</p>
+                    )}
                 </section>
 
                 {/* Contact Section */}
