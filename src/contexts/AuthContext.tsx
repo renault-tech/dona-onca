@@ -95,22 +95,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     };
 
-    // Initialize auth state
+    // Initialize auth state with timeout protection
     useEffect(() => {
+        let didTimeout = false;
+        const timeoutId = setTimeout(() => {
+            didTimeout = true;
+            console.warn('Auth timeout - continuando sem auth');
+            setLoading(false);
+        }, 5000);
+
         const initAuth = async () => {
             try {
                 const { data: { session } } = await supabase.auth.getSession();
+                if (didTimeout) return;
 
                 if (session?.user) {
                     setSession(session);
                     setUser(session.user);
                     const userProfile = await fetchProfile(session.user.id);
+                    if (didTimeout) return;
                     setProfile(userProfile);
                 }
             } catch (error) {
                 console.error('Error initializing auth:', error);
             } finally {
-                setLoading(false);
+                if (!didTimeout) {
+                    clearTimeout(timeoutId);
+                    setLoading(false);
+                }
             }
         };
 

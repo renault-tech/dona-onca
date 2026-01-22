@@ -12,6 +12,20 @@ export default function AdminGuard({ children }: AdminGuardProps) {
     const { user, profile, loading, isAdmin } = useAuth();
     const router = useRouter();
     const [checking, setChecking] = useState(true);
+    const [timedOut, setTimedOut] = useState(false);
+
+    // Timeout protection - prevent infinite loading
+    useEffect(() => {
+        const timeout = setTimeout(() => {
+            if (checking) {
+                console.warn('AdminGuard timeout - redirecionando');
+                setTimedOut(true);
+                setChecking(false);
+            }
+        }, 5000);
+
+        return () => clearTimeout(timeout);
+    }, [checking]);
 
     useEffect(() => {
         if (loading) return;
@@ -37,6 +51,12 @@ export default function AdminGuard({ children }: AdminGuardProps) {
         // User is verified admin
         setChecking(false);
     }, [user, profile, loading, isAdmin, router]);
+
+    // Timeout - redirect to home
+    if (timedOut) {
+        router.push('/');
+        return null;
+    }
 
     // Show loading while checking permissions
     if (loading || checking) {

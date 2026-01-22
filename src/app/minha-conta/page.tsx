@@ -18,15 +18,29 @@ export default function UserDashboard() {
         }
 
         if (user) {
-            const fetchRecentOrders = async () => {
-                const { data } = await supabase
-                    .from('orders')
-                    .select('*')
-                    .eq('user_id', user.id)
-                    .order('created_at', { ascending: false })
-                    .limit(2);
+            let didTimeout = false;
+            const timeoutId = setTimeout(() => {
+                didTimeout = true;
+                console.warn('Recent orders fetch timeout');
+            }, 5000);
 
-                if (data) setRecentOrders(data);
+            const fetchRecentOrders = async () => {
+                try {
+                    const { data } = await supabase
+                        .from('orders')
+                        .select('*')
+                        .eq('user_id', user.id)
+                        .order('created_at', { ascending: false })
+                        .limit(2);
+
+                    if (!didTimeout && data) {
+                        setRecentOrders(data);
+                    }
+                } catch (err) {
+                    console.error('Error fetching recent orders:', err);
+                } finally {
+                    if (!didTimeout) clearTimeout(timeoutId);
+                }
             };
             fetchRecentOrders();
         }
@@ -108,7 +122,10 @@ export default function UserDashboard() {
 
                 <div className="mt-8 flex gap-4">
                     <button
-                        onClick={() => signOut()}
+                        onClick={async () => {
+                            await signOut();
+                            router.push('/');
+                        }}
                         className="text-sm text-red-600 hover:text-red-700 font-medium"
                     >
                         Sair da Conta

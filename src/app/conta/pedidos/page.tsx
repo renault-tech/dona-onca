@@ -19,7 +19,17 @@ export default function OrdersPage() {
     const [fetching, setFetching] = useState(true);
 
     useEffect(() => {
-        if (!user) return;
+        if (!user) {
+            setFetching(false);
+            return;
+        }
+
+        let didTimeout = false;
+        const timeoutId = setTimeout(() => {
+            didTimeout = true;
+            console.warn('Orders fetch timeout');
+            setFetching(false);
+        }, 5000);
 
         const fetchOrders = async () => {
             try {
@@ -29,6 +39,8 @@ export default function OrdersPage() {
                     .eq('user_id', user.id)
                     .order('created_at', { ascending: false });
 
+                if (didTimeout) return;
+
                 if (error) {
                     console.error('Error fetching orders:', error);
                 } else {
@@ -37,7 +49,10 @@ export default function OrdersPage() {
             } catch (err) {
                 console.error('Error:', err);
             } finally {
-                setFetching(false);
+                if (!didTimeout) {
+                    clearTimeout(timeoutId);
+                    setFetching(false);
+                }
             }
         };
 

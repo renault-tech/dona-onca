@@ -94,8 +94,15 @@ export function ProductProvider({ children }: { children: ReactNode }) {
         }
     });
 
-    // Fetch products from Supabase
+    // Fetch products from Supabase with timeout protection
     const fetchProducts = async () => {
+        let didTimeout = false;
+        const timeoutId = setTimeout(() => {
+            didTimeout = true;
+            console.warn('Products fetch timeout - usando lista vazia');
+            setLoading(false);
+        }, 5000);
+
         try {
             setLoading(true);
             const { data, error } = await supabase
@@ -103,6 +110,7 @@ export function ProductProvider({ children }: { children: ReactNode }) {
                 .select('*')
                 .order('created_at', { ascending: false });
 
+            if (didTimeout) return;
             if (error) throw error;
 
             if (data) {
@@ -129,7 +137,10 @@ export function ProductProvider({ children }: { children: ReactNode }) {
         } catch (error) {
             console.error('Error fetching products from Supabase:', error);
         } finally {
-            setLoading(false);
+            if (!didTimeout) {
+                clearTimeout(timeoutId);
+                setLoading(false);
+            }
         }
     };
 

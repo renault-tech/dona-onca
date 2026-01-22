@@ -18,36 +18,43 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
     const [favorites, setFavorites] = useState<number[]>([]);
     const [loading, setLoading] = useState(true);
 
-    // Initial load handles both Logged In logic (Supabase) and Logged Out (localStorage)
+    // Initial load with timeout protection
     useEffect(() => {
+        let didTimeout = false;
+        const timeoutId = setTimeout(() => {
+            didTimeout = true;
+            console.warn('Favorites timeout - usando localStorage');
+            const local = localStorage.getItem('donaonca-favorites');
+            if (local) setFavorites(JSON.parse(local));
+            setLoading(false);
+        }, 3000);
+
         const loadFavorites = async () => {
             setLoading(true);
             try {
                 if (user) {
-                    // Sync: Pull from DB
                     const { data, error } = await supabase
                         .from('profiles')
                         .select('favorites')
                         .eq('id', user.id)
                         .single();
 
+                    if (didTimeout) return;
                     if (!error && data?.favorites) {
                         const dbFavorites = Array.isArray(data.favorites) ? data.favorites : [];
-
-                        // Optional: Merge with local if needed? For now, DB wins if logged in.
                         setFavorites(dbFavorites);
                     }
                 } else {
-                    // Guest: LocalStorage
                     const local = localStorage.getItem('donaonca-favorites');
-                    if (local) {
-                        setFavorites(JSON.parse(local));
-                    }
+                    if (local) setFavorites(JSON.parse(local));
                 }
             } catch (error) {
                 console.error('Error loading favorites:', error);
             } finally {
-                setLoading(false);
+                if (!didTimeout) {
+                    clearTimeout(timeoutId);
+                    setLoading(false);
+                }
             }
         };
 

@@ -47,6 +47,13 @@ export default function AdminDashboard() {
 
     // Calculate real stats
     useEffect(() => {
+        let didTimeout = false;
+        const timeoutId = setTimeout(() => {
+            didTimeout = true;
+            console.warn('Dashboard stats timeout');
+            setLoading(false);
+        }, 5000);
+
         const fetchStats = async () => {
             try {
                 // 1. Fetch Orders for Revenue and Counts
@@ -55,15 +62,16 @@ export default function AdminDashboard() {
                     .select('*')
                     .order('created_at', { ascending: false });
 
+                if (didTimeout) return;
                 if (ordersError) throw ordersError;
 
                 // 2. Fetch Customers (Profiles)
-                // Using select('id') instead of head: true to avoid potential method constraints and get better error messages
                 const { count: customersCount, error: customersError } = await supabase
                     .from('profiles')
                     .select('id', { count: 'exact' })
-                    .eq('is_admin', false); // Only real customers
+                    .eq('is_admin', false);
 
+                if (didTimeout) return;
                 if (customersError) throw customersError;
 
                 // Calculate Totals
@@ -106,7 +114,10 @@ export default function AdminDashboard() {
             } catch (error) {
                 console.error('Error fetching dashboard stats:', error);
             } finally {
-                setLoading(false);
+                if (!didTimeout) {
+                    clearTimeout(timeoutId);
+                    setLoading(false);
+                }
             }
         };
 
