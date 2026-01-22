@@ -99,19 +99,24 @@ export function ProductProvider({ children }: { children: ReactNode }) {
         let didTimeout = false;
         const timeoutId = setTimeout(() => {
             didTimeout = true;
-            console.warn('Products fetch timeout - usando lista vazia');
+            console.warn('Products fetch timeout after 15s');
             setLoading(false);
-        }, 5000);
+        }, 15000);
 
         try {
             setLoading(true);
+            console.log('Fetching products from Supabase...');
             const { data, error } = await supabase
                 .from('products')
                 .select('*')
                 .order('created_at', { ascending: false });
 
             if (didTimeout) return;
-            if (error) throw error;
+            if (error) {
+                console.error('Supabase products error:', error);
+                throw error;
+            }
+            console.log('Products fetched:', data?.length || 0);
 
             if (data) {
                 // Map snake_case from DB to camelCase for the app

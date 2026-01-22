@@ -27,7 +27,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
             const local = localStorage.getItem('donaonca-favorites');
             if (local) setFavorites(JSON.parse(local));
             setLoading(false);
-        }, 3000);
+        }, 15000);
 
         const loadFavorites = async () => {
             setLoading(true);

@@ -102,7 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             didTimeout = true;
             console.warn('Auth timeout - continuando sem auth');
             setLoading(false);
-        }, 5000);
+        }, 15000);
 
         const initAuth = async () => {
             try {
