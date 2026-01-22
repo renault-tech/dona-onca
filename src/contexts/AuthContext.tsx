@@ -21,6 +21,7 @@ interface AuthContextType {
     signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
     signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
     signOut: () => Promise<void>;
+    updateProfile: (data: Partial<UserProfile>) => Promise<{ error: Error | null }>;
     refreshProfile: () => Promise<void>;
 }
 
@@ -98,8 +99,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setProfile(null);
     };
 
+    const updateProfile = async (data: Partial<UserProfile>) => {
+        if (!user) return { error: new Error('Não autenticado') };
+        try {
+            const { error } = await supabase
+                .from('profiles')
+                .update(data)
+                .eq('id', user.id);
+            if (error) return { error };
+            await refreshProfile();
+            return { error: null };
+        } catch (err) {
+            return { error: err as Error };
+        }
+    };
+
     return (
-        <AuthContext.Provider value={{ user, profile, loading, isAdmin, signIn, signUp, signOut, refreshProfile }}>
+        <AuthContext.Provider value={{ user, profile, loading, isAdmin, signIn, signUp, signOut, updateProfile, refreshProfile }}>
             {children}
         </AuthContext.Provider>
     );
