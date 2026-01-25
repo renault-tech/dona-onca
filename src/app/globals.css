@@ -1,32 +1,52 @@
 @import "tailwindcss";
 
-/* Dona Onça - Design System */
+/* ===== TEMA DONA ONÇA LUXURY ===== */
+/* Fonte Cinzel carregada via next/font/google no layout.tsx */
+
 :root {
-  /* Brand Colors - Magenta inspired by the logo */
-  --brand-50: #fdf2f8;
-  --brand-100: #fce7f3;
-  --brand-200: #fbcfe8;
-  --brand-300: #f9a8d4;
-  --brand-400: #f472b6;
-  --brand-500: #ec4899;
-  --brand-600: #B4186D; /* Primary - from logo */
-  --brand-700: #9d174d;
-  --brand-800: #831843;
-  --brand-900: #500724;
-  
-  /* Neutrals */
-  --background: #ffffff;
-  --foreground: #171717;
-  --muted: #f9fafb;
-  --border: #e5e7eb;
+  /* Dark Luxury Theme */
+  --bg-dark: #050505;
+  --bg-gradient-top: #1a0510;
+  --primary-neon: #d6008b;
+  --primary-neon-rgb: 214, 0, 139;
+
+  /* Text Colors */
+  --text-main: #ffffff;
+  --text-muted: #cccccc;
+  --text-subtle: #999999;
+
+  /* Brand Palette (Rosa Magenta Neon) */
+  --brand-50: #fff0f7;
+  --brand-100: #ffe4f1;
+  --brand-200: #ffc9e3;
+  --brand-300: #ff9fcc;
+  --brand-400: #ff5faa;
+  --brand-500: #ff2d91;
+  --brand-600: #d6008b;
+  --brand-700: #b80073;
+  --brand-800: #97005e;
+  --brand-900: #7d0050;
+
+  /* Surface Colors */
+  --surface-dark: rgba(255, 255, 255, 0.03);
+  --surface-card: rgba(255, 255, 255, 0.05);
+  --surface-elevated: rgba(255, 255, 255, 0.08);
+
+  /* Border Colors */
+  --border-subtle: rgba(255, 255, 255, 0.1);
+  --border-neon: rgba(214, 0, 139, 0.5);
+
+  /* Custom Properties */
+  --radius-onca: 1.5rem;
+  --glow-neon: 0 0 15px rgba(214, 0, 139, 0.5);
+  --glow-neon-strong: 0 0 25px rgba(214, 0, 139, 0.8);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-muted: var(--muted);
-  --color-border: var(--border);
-  
+  --color-background: var(--bg-dark);
+  --color-foreground: var(--text-main);
+  --color-muted: var(--text-muted);
+
   /* Brand palette */
   --color-brand-50: var(--brand-50);
   --color-brand-100: var(--brand-100);
@@ -38,59 +58,214 @@
   --color-brand-700: var(--brand-700);
   --color-brand-800: var(--brand-800);
   --color-brand-900: var(--brand-900);
-  
-  /* Font */
+
+  /* Fonts */
   --font-sans: "Montserrat", system-ui, sans-serif;
-  
-  /* Custom border radius - inspired by logo curves */
-  --radius-onca: 1.5rem;
+  --font-serif: "Cinzel", Georgia, serif;
 }
 
-/* Base body */
+/* ===== BASE STYLES ===== */
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: linear-gradient(to bottom, var(--bg-gradient-top), var(--bg-dark));
+  background-attachment: fixed;
+  color: var(--text-main);
   font-family: var(--font-sans);
+  min-height: 100vh;
 }
 
-/* Utility classes for brand */
+/* ===== TYPOGRAPHY ===== */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Cinzel", Georgia, serif;
+  color: var(--text-main);
+  letter-spacing: 0.05em;
+}
+
+/* ===== UTILITY CLASSES ===== */
 .text-brand {
-  color: var(--brand-600);
+  color: var(--primary-neon);
 }
 
 .bg-brand {
-  background-color: var(--brand-600);
+  background-color: var(--primary-neon);
 }
 
 .border-brand {
-  border-color: var(--brand-600);
+  border-color: var(--primary-neon);
 }
 
-.hover\:bg-brand-700:hover {
+/* Glassmorphism */
+.glass {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.glass-light {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Neon Glow Effects */
+.glow-neon {
+  box-shadow: var(--glow-neon);
+}
+
+.glow-neon-strong {
+  box-shadow: var(--glow-neon-strong);
+}
+
+.text-glow {
+  text-shadow: 0 0 10px rgba(214, 0, 139, 0.5);
+}
+
+/* Logo styling */
+.logo-glow {
+  filter: drop-shadow(0 0 8px rgba(214, 0, 139, 0.6));
+}
+
+/* ===== GHOST BUTTONS ===== */
+.btn-ghost {
+  background-color: transparent;
+  border: 2px solid var(--primary-neon);
+  color: var(--text-main);
+  border-radius: 50px;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  box-shadow: 0 0 10px rgba(214, 0, 139, 0.3);
+  transition: all 0.3s ease;
+}
+
+.btn-ghost:hover {
+  background-color: var(--primary-neon);
+  box-shadow: var(--glow-neon-strong);
+  transform: translateY(-2px);
+}
+
+/* Primary Button (Filled) */
+.btn-primary {
+  background-color: var(--primary-neon);
+  border: 2px solid var(--primary-neon);
+  color: var(--text-main);
+  border-radius: 50px;
+  font-weight: 600;
+  box-shadow: 0 0 15px rgba(214, 0, 139, 0.4);
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
   background-color: var(--brand-700);
+  border-color: var(--brand-700);
+  box-shadow: var(--glow-neon-strong);
+  transform: translateY(-2px);
 }
 
-/* Smooth transitions */
+/* ===== CATEGORY CIRCLES ===== */
+.category-circle {
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--primary-neon);
+  box-shadow: 0 0 20px rgba(214, 0, 139, 0.4);
+  transition: all 0.3s ease;
+}
+
+.category-circle:hover {
+  box-shadow: var(--glow-neon-strong);
+  transform: scale(1.05);
+}
+
+/* ===== CARDS ===== */
+.card-dark {
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-onca);
+  transition: all 0.3s ease;
+}
+
+.card-dark:hover {
+  background: var(--surface-elevated);
+  border-color: var(--border-neon);
+  box-shadow: 0 0 20px rgba(214, 0, 139, 0.2);
+}
+
+/* ===== VIGNETTE EFFECT ===== */
+.vignette::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.6) 100%);
+  pointer-events: none;
+}
+
+/* ===== INPUTS ===== */
+.input-dark {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  border-radius: var(--radius-onca);
+}
+
+.input-dark::placeholder {
+  color: var(--text-subtle);
+}
+
+.input-dark:focus {
+  outline: none;
+  border-color: var(--primary-neon);
+  box-shadow: 0 0 10px rgba(214, 0, 139, 0.3);
+}
+
+/* ===== SMOOTH TRANSITIONS ===== */
 * {
-  transition-property: color, background-color, border-color, transform, box-shadow;
+  transition-property: color, background-color, border-color, transform, box-shadow, opacity;
   transition-duration: 200ms;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Scrollbar styling */
+/* ===== SCROLLBAR ===== */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--muted);
+  background: var(--bg-dark);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--brand-300);
+  background: var(--brand-700);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--brand-400);
+  background: var(--primary-neon);
+}
+
+/* ===== SELECTION ===== */
+::selection {
+  background: rgba(214, 0, 139, 0.3);
+  color: var(--text-main);
+}
+
+/* ===== ADMIN FORM INPUTS ===== */
+/* Classe específica para inputs em páginas de admin com fundo claro */
+.admin-form input,
+.admin-form textarea,
+.admin-form select {
+  color: #111827 !important;
+  background-color: white !important;
+}
+
+.admin-form input::placeholder,
+.admin-form textarea::placeholder {
+  color: #9ca3af !important;
 }

@@ -21,15 +21,16 @@ export default function FavoriteButton({ productId, className = '', iconSize = 6
     return (
         <button
             onClick={handleClick}
-            className={`group flex items-center justify-center rounded-full bg-white/80 p-2 shadow-sm backdrop-blur-sm transition-all hover:bg-white hover:scale-110 ${className}`}
+            className={`group flex items-center justify-center rounded-full bg-black/60 p-2 shadow-sm backdrop-blur-sm transition-all hover:bg-black/80 hover:scale-110 border border-white/10 hover:border-[#d6008b]/50 ${className}`}
             title={active ? "Remover dos favoritos" : "Adicionar aos favoritos"}
         >
             <svg
-                className={`h-${iconSize} w-${iconSize} transition-colors ${active ? 'fill-red-500 text-red-500' : 'fill-transparent text-gray-400 group-hover:text-red-400'}`}
+                className={`h-${iconSize} w-${iconSize} transition-colors ${active ? 'fill-[#d6008b] text-[#d6008b]' : 'fill-transparent text-white/60 group-hover:text-[#d6008b]'}`}
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2"
+                style={active ? { filter: 'drop-shadow(0 0 6px rgba(214, 0, 139, 0.6))' } : {}}
             >
                 <path
                     strokeLinecap="round"

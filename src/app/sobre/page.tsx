@@ -10,71 +10,132 @@ export default function AboutPage() {
     return (
         <div className="min-h-screen">
             {/* Hero */}
-            <section className="bg-gradient-to-br from-brand-700 to-brand-500 py-10 px-4">
-                <div className="mx-auto max-w-4xl text-center text-white">
+            <section className="relative py-20 overflow-hidden">
+                {/* Background Image */}
+                <div className="absolute inset-0">
+                    <Image
+                        src="/header-bg-v2.png"
+                        alt=""
+                        fill
+                        className="object-cover"
+                        style={{ objectPosition: 'center top' }}
+                    />
+                    {/* Gradient Overlay - fade to dark */}
+                    <div
+                        className="absolute inset-0"
+                        style={{
+                            background: `linear-gradient(to bottom, 
+                                rgba(13, 3, 8, 0.3) 0%, 
+                                rgba(13, 3, 8, 0.6) 50%, 
+                                rgba(5, 5, 5, 1) 100%)`
+                        }}
+                    />
+                    {/* Reduce pink glow */}
+                    <div
+                        className="absolute inset-0"
+                        style={{
+                            background: `radial-gradient(ellipse at 0% 0%, rgba(5, 5, 5, 0.5) 0%, transparent 40%)`
+                        }}
+                    />
+                </div>
 
-                    {/* White square with jaguar image */}
-                    <div className="relative h-40 w-40 mx-auto mb-8 bg-white p-2 rounded-2xl shadow-lg">
-                        <div className="relative h-full w-full overflow-hidden rounded-xl bg-gray-50 flex items-center justify-center">
-                            {hero.image ? (
-                                <Image
-                                    src={hero.image}
-                                    alt={hero.title}
-                                    fill
-                                    className="object-contain p-1"
-                                    priority
-                                />
-                            ) : (
-                                <Image
-                                    src="/onca-watermark.png"
-                                    alt="Dona Onça"
-                                    fill
-                                    className="object-contain p-1"
-                                    priority
-                                />
-                            )}
-                        </div>
+                <div className="relative z-10 mx-auto max-w-4xl px-4 text-center">
+                    {/* Logo/Image */}
+                    <div
+                        className="relative h-36 w-36 mx-auto mb-8 rounded-full overflow-hidden flex items-center justify-center"
+                        style={{
+                            background: 'linear-gradient(135deg, rgba(214, 0, 139, 0.2) 0%, rgba(26, 5, 16, 0.8) 100%)',
+                            border: '2px solid #d6008b',
+                            boxShadow: '0 0 30px rgba(214, 0, 139, 0.4)',
+                        }}
+                    >
+                        {hero.image ? (
+                            <Image
+                                src={hero.image}
+                                alt={hero.title}
+                                fill
+                                className="object-contain p-2"
+                                priority
+                            />
+                        ) : (
+                            <Image
+                                src="/onca-watermark.png"
+                                alt="Dona Onça"
+                                fill
+                                className="object-contain p-2"
+                                style={{ filter: 'drop-shadow(0 0 10px rgba(214, 0, 139, 0.5))' }}
+                                priority
+                            />
+                        )}
                     </div>
 
-                    <div className="space-y-4">
-                        <h1 className="text-4xl font-extrabold md:text-5xl tracking-tight leading-tight">
-                            {hero.title}
-                        </h1>
-                        <p className="text-xl text-brand-100 font-medium max-w-2xl mx-auto italic">
-                            {hero.tagline}
-                        </p>
-                    </div>
+                    <h1
+                        className="text-4xl font-bold text-white md:text-5xl tracking-wide"
+                        style={{ fontFamily: 'var(--font-cinzel), Cinzel, serif' }}
+                    >
+                        {hero.title}
+                    </h1>
+                    <p className="mt-4 text-xl text-white/60 font-medium italic max-w-2xl mx-auto">
+                        {hero.tagline}
+                    </p>
                 </div>
             </section>
 
             {/* Story */}
-            <section className="bg-white py-16">
+            <section className="py-16">
                 <div className="mx-auto max-w-3xl px-4">
-                    <h2 className="mb-6 text-center text-3xl font-bold text-gray-900">Nossa História</h2>
-                    <div className="space-y-4 text-gray-600 whitespace-pre-wrap">
+                    <h2
+                        className="mb-8 text-center text-3xl font-bold text-white tracking-wide"
+                        style={{ fontFamily: 'var(--font-cinzel), Cinzel, serif' }}
+                    >
+                        Nossa História
+                    </h2>
+                    <div className="space-y-4 text-white/70 whitespace-pre-wrap leading-relaxed">
                         {story}
                     </div>
                 </div>
             </section>
 
             {/* Values */}
-            <section className="bg-gray-50 py-16">
-                <div className="mx-auto max-w-5xl px-4">
-                    <h2 className="mb-12 text-center text-3xl font-bold text-gray-900">Nossos Valores</h2>
+            <section className="py-16 relative">
+                <div
+                    className="absolute inset-0"
+                    style={{
+                        background: 'linear-gradient(to bottom, transparent, rgba(214, 0, 139, 0.05), transparent)'
+                    }}
+                />
+                <div className="relative z-10 mx-auto max-w-5xl px-4">
+                    <h2
+                        className="mb-12 text-center text-3xl font-bold text-white tracking-wide"
+                        style={{ fontFamily: 'var(--font-cinzel), Cinzel, serif' }}
+                    >
+                        Nossos Valores
+                    </h2>
                     <div className="grid gap-8 md:grid-cols-3">
                         {values.map((value, idx) => (
-                            <div key={idx} className="rounded-2xl bg-white p-6 text-center shadow-sm border border-transparent hover:border-brand-200 transition-all">
+                            <div
+                                key={idx}
+                                className="card-dark p-6 text-center hover:border-[#d6008b]/50 transition-all"
+                            >
                                 <div className="mb-4 flex items-center justify-center">
                                     {value.image ? (
-                                        <div className="relative h-16 w-16 overflow-hidden rounded-xl">
+                                        <div
+                                            className="relative h-16 w-16 overflow-hidden rounded-xl"
+                                            style={{ border: '1px solid rgba(214, 0, 139, 0.3)' }}
+                                        >
                                             <Image src={value.image} alt={value.title} fill className="object-cover" />
                                         </div>
                                     ) : (
                                         <span className="text-4xl">{value.icon}</span>
                                     )}
                                 </div>
-                                <h3 className="mb-2 text-xl font-bold text-gray-900">{value.title}</h3>
-                                <p className="text-gray-600">{value.description}</p>
+                                <h3
+                                    className="mb-2 text-xl font-bold text-white"
+                                    style={{ fontFamily: 'var(--font-cinzel), Cinzel, serif' }}
+                                >
+                                    {value.title}
+                                </h3>
+                                <p className="text-white/60">{value.description}</p>
                             </div>
                         ))}
                     </div>
@@ -82,21 +143,32 @@ export default function AboutPage() {
             </section>
 
             {/* Team */}
-            <section className="bg-white py-16">
+            <section className="py-16">
                 <div className="mx-auto max-w-5xl px-4">
-                    <h2 className="mb-12 text-center text-3xl font-bold text-gray-900">Nossa Equipe</h2>
+                    <h2
+                        className="mb-12 text-center text-3xl font-bold text-white tracking-wide"
+                        style={{ fontFamily: 'var(--font-cinzel), Cinzel, serif' }}
+                    >
+                        Nossa Equipe
+                    </h2>
                     <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3">
                         {team.map((member, idx) => (
                             <div key={idx} className="text-center group">
-                                <div className="mx-auto mb-4 relative h-32 w-32 overflow-hidden rounded-full bg-brand-100 flex items-center justify-center border-2 border-transparent group-hover:border-brand-500 transition-all">
+                                <div
+                                    className="mx-auto mb-4 relative h-32 w-32 overflow-hidden rounded-full flex items-center justify-center transition-all"
+                                    style={{
+                                        background: 'linear-gradient(135deg, rgba(214, 0, 139, 0.2) 0%, rgba(26, 5, 16, 0.6) 100%)',
+                                        border: '2px solid rgba(214, 0, 139, 0.3)',
+                                    }}
+                                >
                                     {member.image ? (
                                         <Image src={member.image} alt={member.name} fill className="object-cover" />
                                     ) : (
-                                        <span className="text-4xl text-brand-600">👩</span>
+                                        <span className="text-4xl">👩</span>
                                     )}
                                 </div>
-                                <h3 className="font-bold text-gray-900">{member.name}</h3>
-                                <p className="text-sm text-gray-500">{member.role}</p>
+                                <h3 className="font-bold text-white">{member.name}</h3>
+                                <p className="text-sm text-[#d6008b]">{member.role}</p>
                             </div>
                         ))}
                     </div>
@@ -104,25 +176,61 @@ export default function AboutPage() {
             </section>
 
             {/* Contact */}
-            <section className="bg-brand-600 py-16">
-                <div className="mx-auto max-w-3xl px-4 text-center text-white">
-                    <h2 className="mb-4 text-3xl font-bold">Fale Conosco</h2>
-                    <p className="mb-8 text-brand-100">
+            <section className="py-16 relative">
+                <div
+                    className="absolute inset-0"
+                    style={{
+                        background: 'linear-gradient(to bottom, transparent, rgba(214, 0, 139, 0.1))'
+                    }}
+                />
+                <div className="relative z-10 mx-auto max-w-3xl px-4 text-center">
+                    <h2
+                        className="mb-4 text-3xl font-bold text-white tracking-wide"
+                        style={{ fontFamily: 'var(--font-cinzel), Cinzel, serif' }}
+                    >
+                        Fale Conosco
+                    </h2>
+                    <p className="mb-8 text-white/60">
                         Estamos sempre prontas para ajudar você
                     </p>
-                    <div className="flex flex-wrap justify-center gap-6">
+                    <div className="flex flex-wrap justify-center gap-4">
                         {contact.email && (
-                            <a href={`mailto:${contact.email}`} className="flex items-center gap-2 hover:bg-white/10 px-4 py-2 rounded-xl transition-colors">
+                            <a
+                                href={`mailto:${contact.email}`}
+                                className="flex items-center gap-2 px-6 py-3 rounded-full text-white transition-all hover:scale-105"
+                                style={{
+                                    background: 'linear-gradient(135deg, rgba(214, 0, 139, 0.3) 0%, rgba(214, 0, 139, 0.15) 100%)',
+                                    border: '1px solid rgba(214, 0, 139, 0.4)',
+                                }}
+                            >
                                 📧 {contact.email}
                             </a>
                         )}
                         {contact.whatsapp && (
-                            <a href={`https://wa.me/${contact.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:bg-white/10 px-4 py-2 rounded-xl transition-colors">
+                            <a
+                                href={`https://wa.me/${contact.whatsapp.replace(/\D/g, '')}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 px-6 py-3 rounded-full text-white transition-all hover:scale-105"
+                                style={{
+                                    background: 'linear-gradient(135deg, rgba(214, 0, 139, 0.3) 0%, rgba(214, 0, 139, 0.15) 100%)',
+                                    border: '1px solid rgba(214, 0, 139, 0.4)',
+                                }}
+                            >
                                 📱 WhatsApp
                             </a>
                         )}
                         {contact.instagram && (
-                            <a href={`https://instagram.com/${contact.instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:bg-white/10 px-4 py-2 rounded-xl transition-colors">
+                            <a
+                                href={`https://instagram.com/${contact.instagram.replace('@', '')}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 px-6 py-3 rounded-full text-white transition-all hover:scale-105"
+                                style={{
+                                    background: 'linear-gradient(135deg, rgba(214, 0, 139, 0.3) 0%, rgba(214, 0, 139, 0.15) 100%)',
+                                    border: '1px solid rgba(214, 0, 139, 0.4)',
+                                }}
+                            >
                                 📸 @{contact.instagram.replace('@', '')}
                             </a>
                         )}

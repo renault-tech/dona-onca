@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Montserrat } from "next/font/google";
+import { Montserrat, Cinzel } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Providers from "@/components/Providers";
@@ -8,6 +8,12 @@ const montserrat = Montserrat({
   variable: "--font-montserrat",
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
+});
+
+const cinzel = Cinzel({
+  variable: "--font-cinzel",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -28,8 +34,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR">
-      <body className={`${montserrat.variable} font-sans antialiased`}>
+    <html lang="pt-BR" className="dark">
+      <body className={`${montserrat.variable} ${cinzel.variable} font-sans antialiased min-h-screen`}>
         <Providers>
           <Navbar />
           <main>{children}</main>
@@ -38,4 +44,3 @@ export default function RootLayout({
     </html>
   );
 }
-

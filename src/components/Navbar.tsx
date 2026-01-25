@@ -14,28 +14,28 @@ export default function Navbar() {
     const { user, isAdmin } = useAuth();
 
     return (
-        <header className="sticky top-0 z-50 bg-white shadow-sm">
+        <header className="sticky top-0 z-50 glass border-b border-white/10">
             <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 lg:px-8">
                 {/* Logo */}
-                <Link href="/" className="flex items-center gap-2">
+                <Link href="/" className="flex items-center gap-3">
                     <Image
                         src="/logo.png"
                         alt="Dona Onça"
-                        width={48}
-                        height={48}
-                        className="h-12 w-12 object-contain"
+                        width={56}
+                        height={56}
+                        className="h-14 w-14 object-contain logo-glow"
                         priority
                     />
-                    <span className="hidden text-xl font-bold text-brand-600 sm:block">
+                    <span className="hidden text-xl font-semibold text-white sm:block" style={{ fontFamily: 'var(--font-cinzel), Cinzel, serif' }}>
                         Dona Onça
                     </span>
                 </Link>
 
                 {/* Desktop Navigation */}
-                <div className="hidden items-center gap-6 lg:flex">
+                <div className="hidden items-center gap-8 lg:flex">
                     <Link
                         href="/produtos"
-                        className="text-sm font-medium text-gray-700 hover:text-brand-600"
+                        className="text-sm font-medium text-white/80 hover:text-[#d6008b] transition-colors"
                     >
                         Produtos
                     </Link>
@@ -45,7 +45,7 @@ export default function Navbar() {
                         <button
                             onClick={() => setShowCategories(!showCategories)}
                             onBlur={() => setTimeout(() => setShowCategories(false), 150)}
-                            className="flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-brand-600"
+                            className="flex items-center gap-1 text-sm font-medium text-white/80 hover:text-[#d6008b] transition-colors"
                         >
                             Categorias
                             <svg className={`h-4 w-4 transition-transform ${showCategories ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -53,12 +53,12 @@ export default function Navbar() {
                             </svg>
                         </button>
                         {showCategories && (
-                            <div className="absolute left-0 top-full mt-2 w-48 rounded-xl bg-white py-2 shadow-lg ring-1 ring-black/5">
+                            <div className="absolute left-0 top-full mt-2 w-48 rounded-xl glass border border-white/10 py-2 shadow-lg">
                                 {categories.map((cat) => (
                                     <Link
                                         key={cat}
                                         href={`/produtos?categoria=${encodeURIComponent(cat)}`}
-                                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-brand-50 hover:text-brand-600"
+                                        className="block px-4 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-[#d6008b] transition-colors"
                                         onClick={() => setShowCategories(false)}
                                     >
                                         {cat}
@@ -70,20 +70,20 @@ export default function Navbar() {
 
                     <Link
                         href="/novidades"
-                        className="text-sm font-medium text-gray-700 hover:text-brand-600"
+                        className="text-sm font-medium text-white/80 hover:text-[#d6008b] transition-colors"
                     >
                         Novidades
                     </Link>
                     <Link
                         href="/sobre"
-                        className="text-sm font-medium text-gray-700 hover:text-brand-600"
+                        className="text-sm font-medium text-white/80 hover:text-[#d6008b] transition-colors"
                     >
                         Sobre
                     </Link>
                     {isAdmin && (
                         <Link
                             href="/admin"
-                            className="rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-700"
+                            className="rounded-full border border-[#d6008b] bg-transparent px-4 py-1.5 text-sm font-medium text-white hover:bg-[#d6008b] transition-all glow-neon"
                         >
                             Admin
                         </Link>
@@ -95,7 +95,7 @@ export default function Navbar() {
                     {/* Search */}
                     <Link
                         href="/produtos"
-                        className="rounded-full p-2 text-gray-600 hover:bg-brand-50 hover:text-brand-600"
+                        className="rounded-full p-2 text-white/80 hover:text-[#d6008b] hover:bg-white/5 transition-colors"
                         aria-label="Buscar"
                     >
                         <svg
@@ -116,7 +116,7 @@ export default function Navbar() {
                     {/* Profile */}
                     <Link
                         href={user ? "/minha-conta" : "/conta"}
-                        className="rounded-full p-2 text-gray-600 hover:bg-brand-50 hover:text-brand-600"
+                        className="rounded-full p-2 text-white/80 hover:text-[#d6008b] hover:bg-white/5 transition-colors"
                         aria-label="Minha conta"
                     >
                         <svg
@@ -137,7 +137,7 @@ export default function Navbar() {
                     {/* Cart */}
                     <Link
                         href="/sacola"
-                        className="relative rounded-full p-2 text-gray-600 hover:bg-brand-50 hover:text-brand-600"
+                        className="relative rounded-full p-2 text-white/80 hover:text-[#d6008b] hover:bg-white/5 transition-colors"
                         aria-label="Sacola de compras"
                     >
                         <svg
@@ -155,7 +155,7 @@ export default function Navbar() {
                         </svg>
                         {/* Cart badge */}
                         {itemCount > 0 && (
-                            <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-brand-600 text-xs font-bold text-white">
+                            <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#d6008b] text-xs font-bold text-white glow-neon">
                                 {itemCount > 9 ? '9+' : itemCount}
                             </span>
                         )}
@@ -164,7 +164,7 @@ export default function Navbar() {
                     {/* Mobile menu button */}
                     <button
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        className="rounded-full p-2 text-gray-600 hover:bg-brand-50 hover:text-brand-600 lg:hidden"
+                        className="rounded-full p-2 text-white/80 hover:text-[#d6008b] hover:bg-white/5 transition-colors lg:hidden"
                         aria-label="Menu"
                     >
                         <svg
@@ -195,22 +195,22 @@ export default function Navbar() {
 
             {/* Mobile Menu */}
             {isMenuOpen && (
-                <div className="border-t border-gray-100 bg-white px-4 py-4 lg:hidden">
+                <div className="border-t border-white/10 glass px-4 py-4 lg:hidden">
                     <div className="flex flex-col gap-3">
                         <Link
                             href="/produtos"
-                            className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-brand-50 hover:text-brand-600"
+                            className="rounded-lg px-3 py-2 text-sm font-medium text-white/80 hover:bg-white/10 hover:text-[#d6008b] transition-colors"
                             onClick={() => setIsMenuOpen(false)}
                         >
                             Produtos
                         </Link>
-                        <div className="border-t border-gray-100 py-2">
-                            <p className="mb-2 px-3 text-xs font-semibold uppercase text-gray-400">Categorias</p>
+                        <div className="border-t border-white/10 py-2">
+                            <p className="mb-2 px-3 text-xs font-semibold uppercase text-white/50">Categorias</p>
                             {categories.map((cat) => (
                                 <Link
                                     key={cat}
                                     href={`/produtos?categoria=${encodeURIComponent(cat)}`}
-                                    className="block rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-brand-50 hover:text-brand-600"
+                                    className="block rounded-lg px-3 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-[#d6008b] transition-colors"
                                     onClick={() => setIsMenuOpen(false)}
                                 >
                                     {cat}
@@ -219,14 +219,14 @@ export default function Navbar() {
                         </div>
                         <Link
                             href="/novidades"
-                            className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-brand-50 hover:text-brand-600"
+                            className="rounded-lg px-3 py-2 text-sm font-medium text-white/80 hover:bg-white/10 hover:text-[#d6008b] transition-colors"
                             onClick={() => setIsMenuOpen(false)}
                         >
                             Novidades
                         </Link>
                         <Link
                             href="/sobre"
-                            className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-brand-50 hover:text-brand-600"
+                            className="rounded-lg px-3 py-2 text-sm font-medium text-white/80 hover:bg-white/10 hover:text-[#d6008b] transition-colors"
                             onClick={() => setIsMenuOpen(false)}
                         >
                             Sobre
@@ -234,7 +234,7 @@ export default function Navbar() {
                         {isAdmin && (
                             <Link
                                 href="/admin"
-                                className="mt-2 rounded-lg bg-brand-600 px-3 py-2 text-center text-sm font-medium text-white"
+                                className="mt-2 rounded-full border border-[#d6008b] bg-transparent px-3 py-2 text-center text-sm font-medium text-white hover:bg-[#d6008b] transition-all"
                                 onClick={() => setIsMenuOpen(false)}
                             >
                                 Admin

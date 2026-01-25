@@ -137,7 +137,7 @@ export default function AdminDashboard() {
         { title: 'Faturamento', stat: formatCurrency(stats.totalRevenue), subtext: 'Total', href: '/admin/orders', icon: '💰', color: 'from-green-500 to-emerald-600' },
         { title: 'Pedidos', stat: stats.totalOrders.toString(), subtext: 'Total', href: '/admin/orders', icon: '📋', color: 'from-blue-500 to-indigo-600' },
         { title: 'Produtos', stat: totalProducts.toString(), subtext: `${activeProducts} ativos`, href: '/admin/products', icon: '📦', color: 'from-pink-500 to-rose-600' },
-        { title: 'Sobre', stat: '—', subtext: 'Editar', href: '/admin/about', icon: 'ℹ️', color: 'from-slate-500 to-gray-600' },
+        { title: 'Site', stat: '—', subtext: 'Sobre & Banners', href: '/admin/site', icon: '🌐', color: 'from-fuchsia-500 to-pink-600' },
     ];
 
     if (loading || productsLoading) {

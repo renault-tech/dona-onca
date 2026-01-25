@@ -53,7 +53,7 @@ function ProductsContent() {
     if (loading) {
         return (
             <div className="flex min-h-[60vh] items-center justify-center">
-                <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand-200 border-t-brand-600" />
+                <div className="h-10 w-10 animate-spin rounded-full border-4 border-white/20 border-t-[#d6008b]" />
             </div>
         );
     }
@@ -73,14 +73,44 @@ function ProductsContent() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            {/* Header */}
-            <div className="bg-brand-600 py-10 md:py-16">
-                <div className="mx-auto max-w-7xl px-4 text-center">
-                    <h1 className="text-3xl font-bold text-white md:text-5xl">
+        <div className="min-h-screen">
+            {/* Header with background image */}
+            <div className="relative py-16 md:py-20 overflow-hidden">
+                {/* Background Image */}
+                <div className="absolute inset-0">
+                    <Image
+                        src="/header-bg-v2.png"
+                        alt=""
+                        fill
+                        className="object-cover"
+                        style={{ objectPosition: 'center top' }}
+                    />
+                    {/* Gradient Overlay - fade to dark */}
+                    <div
+                        className="absolute inset-0"
+                        style={{
+                            background: `linear-gradient(to bottom, 
+                                rgba(13, 3, 8, 0.3) 0%, 
+                                rgba(13, 3, 8, 0.6) 50%, 
+                                rgba(5, 5, 5, 1) 100%)`
+                        }}
+                    />
+                    {/* Reduce pink glow */}
+                    <div
+                        className="absolute inset-0"
+                        style={{
+                            background: `radial-gradient(ellipse at 0% 0%, rgba(5, 5, 5, 0.5) 0%, transparent 40%)`
+                        }}
+                    />
+                </div>
+                <div className="relative z-10 mx-auto max-w-7xl px-4 text-center">
+                    <h1
+                        className="text-3xl font-semibold text-white md:text-5xl tracking-wide"
+                        style={{ fontFamily: 'var(--font-cinzel), Cinzel, serif' }}
+                    >
                         {selectedCategory === 'Todos' ? 'Nossa Coleção' : selectedCategory}
                     </h1>
-                    <p className="mt-3 text-brand-100/80 text-lg">
+                    <p className="mt-4 text-white/60 text-lg">
                         Encontre as peças perfeitas para realçar sua beleza.
                     </p>
                 </div>
@@ -93,11 +123,16 @@ function ProductsContent() {
                         <div className="sticky top-24 space-y-8">
                             {/* Categories */}
                             <div>
-                                <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-gray-900">Categorias</h3>
+                                <h3
+                                    className="mb-4 text-sm font-bold uppercase tracking-wider text-white"
+                                    style={{ fontFamily: 'var(--font-cinzel), Cinzel, serif' }}
+                                >
+                                    Categorias
+                                </h3>
                                 <div className="space-y-2">
                                     <button
                                         onClick={() => setSelectedCategory('Todos')}
-                                        className={`block w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${selectedCategory === 'Todos' ? 'bg-brand-50 text-brand-600 font-semibold' : 'text-gray-600 hover:bg-gray-100'}`}
+                                        className={`block w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${selectedCategory === 'Todos' ? 'bg-[#d6008b]/20 text-[#d6008b] font-semibold border border-[#d6008b]/30' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}
                                     >
                                         Todos os Produtos
                                     </button>
@@ -105,7 +140,7 @@ function ProductsContent() {
                                         <button
                                             key={cat}
                                             onClick={() => setSelectedCategory(cat)}
-                                            className={`block w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${selectedCategory === cat ? 'bg-brand-50 text-brand-600 font-semibold' : 'text-gray-600 hover:bg-gray-100'}`}
+                                            className={`block w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${selectedCategory === cat ? 'bg-[#d6008b]/20 text-[#d6008b] font-semibold border border-[#d6008b]/30' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}
                                         >
                                             {cat}
                                         </button>
@@ -116,13 +151,18 @@ function ProductsContent() {
                             {/* Sizes */}
                             {allSizes.length > 0 && (
                                 <div>
-                                    <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-gray-900">Tamanhos</h3>
+                                    <h3
+                                        className="mb-4 text-sm font-bold uppercase tracking-wider text-white"
+                                        style={{ fontFamily: 'var(--font-cinzel), Cinzel, serif' }}
+                                    >
+                                        Tamanhos
+                                    </h3>
                                     <div className="flex flex-wrap gap-2">
                                         {allSizes.map(size => (
                                             <button
                                                 key={size}
                                                 onClick={() => toggleSize(size)}
-                                                className={`flex h-10 w-10 items-center justify-center rounded-lg border text-xs font-semibold transition-all ${selectedSizes.includes(size) ? 'border-brand-600 bg-brand-600 text-white' : 'border-gray-200 bg-white text-gray-600 hover:border-brand-600'}`}
+                                                className={`flex h-10 w-10 items-center justify-center rounded-lg border text-xs font-semibold transition-all ${selectedSizes.includes(size) ? 'border-[#d6008b] bg-[#d6008b] text-white glow-neon' : 'border-white/20 bg-white/5 text-white/70 hover:border-[#d6008b]/50'}`}
                                             >
                                                 {size}
                                             </button>
@@ -134,7 +174,12 @@ function ProductsContent() {
                             {/* Colors */}
                             {allColors.length > 0 && (
                                 <div>
-                                    <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-gray-900">Cores</h3>
+                                    <h3
+                                        className="mb-4 text-sm font-bold uppercase tracking-wider text-white"
+                                        style={{ fontFamily: 'var(--font-cinzel), Cinzel, serif' }}
+                                    >
+                                        Cores
+                                    </h3>
                                     <div className="space-y-2">
                                         {allColors.map(color => (
                                             <button
@@ -142,8 +187,8 @@ function ProductsContent() {
                                                 onClick={() => toggleColor(color)}
                                                 className="flex w-full items-center gap-3 group"
                                             >
-                                                <div className={`h-4 w-4 rounded-full border border-gray-300 transition-all ${selectedColors.includes(color) ? 'bg-brand-600 border-brand-600 ring-2 ring-brand-100' : 'bg-white'}`} />
-                                                <span className={`text-sm transition-colors ${selectedColors.includes(color) ? 'text-brand-600 font-medium' : 'text-gray-600 group-hover:text-brand-500'}`}>{color}</span>
+                                                <div className={`h-4 w-4 rounded-full border transition-all ${selectedColors.includes(color) ? 'bg-[#d6008b] border-[#d6008b] ring-2 ring-[#d6008b]/30' : 'bg-white/10 border-white/30'}`} />
+                                                <span className={`text-sm transition-colors ${selectedColors.includes(color) ? 'text-[#d6008b] font-medium' : 'text-white/70 group-hover:text-white'}`}>{color}</span>
                                             </button>
                                         ))}
                                     </div>
@@ -154,7 +199,7 @@ function ProductsContent() {
                             {(selectedCategory !== 'Todos' || selectedSizes.length > 0 || selectedColors.length > 0) && (
                                 <button
                                     onClick={clearFilters}
-                                    className="text-sm font-medium text-brand-600 hover:text-brand-700 hover:underline"
+                                    className="text-sm font-medium text-[#d6008b] hover:text-white transition-colors"
                                 >
                                     Limpar todos os filtros
                                 </button>
@@ -165,23 +210,23 @@ function ProductsContent() {
                     {/* Main Content */}
                     <div className="flex-1">
                         {/* Mobile Filter Toggle & Sort */}
-                        <div className="mb-6 flex items-center justify-between gap-4 rounded-2xl bg-white p-4 shadow-sm">
+                        <div className="mb-6 flex items-center justify-between gap-4 rounded-2xl glass border border-white/10 p-4">
                             <button
                                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                                className="flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 lg:hidden"
+                                className="flex items-center gap-2 rounded-xl border border-white/20 px-4 py-2 text-sm font-medium text-white/80 hover:border-[#d6008b]/50 transition-colors lg:hidden"
                             >
                                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                                 </svg>
                                 {isSidebarOpen ? 'Fechar Filtros' : 'Filtros'}
                             </button>
-                            <div className="hidden text-sm text-gray-500 lg:block">
+                            <div className="hidden text-sm text-white/50 lg:block">
                                 Exibindo {filteredAndSortedProducts.length} produtos
                             </div>
                             <select
                                 value={sortBy}
                                 onChange={(e) => setSortBy(e.target.value as SortOption)}
-                                className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 focus:border-brand-500 focus:outline-none"
+                                className="rounded-xl border border-white/20 bg-black/40 px-4 py-2 text-sm text-white focus:border-[#d6008b] focus:outline-none"
                             >
                                 <option value="newest">Mais recentes</option>
                                 <option value="price-low">Menor preço</option>
@@ -192,14 +237,19 @@ function ProductsContent() {
 
                         {/* Products Grid */}
                         {filteredAndSortedProducts.length === 0 ? (
-                            <div className="rounded-2xl bg-white p-12 text-center shadow-sm">
-                                <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-gray-100">
-                                    <svg className="h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div className="rounded-2xl card-dark p-12 text-center">
+                                <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-white/5">
+                                    <svg className="h-12 w-12 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                                     </svg>
                                 </div>
-                                <h2 className="mb-2 text-xl font-semibold text-gray-900">Nenhum produto encontrado</h2>
-                                <p className="text-gray-500">Tente ajustar seus filtros para encontrar o que procura</p>
+                                <h2
+                                    className="mb-2 text-xl font-semibold text-white"
+                                    style={{ fontFamily: 'var(--font-cinzel), Cinzel, serif' }}
+                                >
+                                    Nenhum produto encontrado
+                                </h2>
+                                <p className="text-white/50">Tente ajustar seus filtros para encontrar o que procura</p>
                             </div>
                         ) : (
                             <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4 xl:gap-6">
@@ -207,26 +257,26 @@ function ProductsContent() {
                                     <Link
                                         key={product.id}
                                         href={`/produto/${product.id}`}
-                                        className="group overflow-hidden rounded-2xl bg-white shadow-sm transition-all hover:shadow-lg hover:-translate-y-1"
+                                        className="group card-dark overflow-hidden transition-all hover:-translate-y-1"
                                     >
-                                        <div className="relative aspect-[3/4] overflow-hidden bg-gray-100">
+                                        <div className="relative aspect-[3/4] overflow-hidden bg-gradient-to-br from-[#1a0510]/50 to-transparent">
                                             <Image
                                                 src={product.images[0] || '/logo.png'}
                                                 alt={product.name}
                                                 fill
                                                 className="object-cover transition-transform duration-500 group-hover:scale-105"
                                             />
-                                            <span className="absolute left-3 top-3 rounded-full bg-white/90 backdrop-blur-sm px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-brand-600 shadow-sm">
+                                            <span className="absolute left-3 top-3 rounded-full border border-[#d6008b] bg-black/60 backdrop-blur-sm px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
                                                 {product.category}
                                             </span>
                                             {product.originalPrice && product.originalPrice > product.price && (
-                                                <span className="absolute right-3 top-3 rounded-full bg-brand-600 px-2 py-1 text-[10px] font-bold text-white shadow-sm">
+                                                <span className="absolute right-3 top-3 rounded-full bg-[#d6008b] px-2 py-1 text-[10px] font-bold text-white shadow-sm glow-neon">
                                                     -{Math.round((1 - product.price / product.originalPrice) * 100)}%
                                                 </span>
                                             )}
                                             {product.stock === 0 && (
-                                                <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
-                                                    <span className="rounded-lg bg-white px-3 py-1 text-xs font-bold uppercase text-gray-900 shadow-xl">
+                                                <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-[2px]">
+                                                    <span className="rounded-lg border border-white/20 bg-black/80 px-3 py-1 text-xs font-bold uppercase text-white">
                                                         Esgotado
                                                     </span>
                                                 </div>
@@ -237,20 +287,20 @@ function ProductsContent() {
                                             </div>
                                         </div>
                                         <div className="p-4">
-                                            <h3 className="mb-1 text-sm font-medium text-gray-900 line-clamp-2 transition-colors group-hover:text-brand-600">
+                                            <h3 className="mb-1 text-sm font-medium text-white line-clamp-2 transition-colors group-hover:text-[#d6008b]">
                                                 {product.name}
                                             </h3>
                                             <div className="flex flex-wrap items-baseline gap-2">
-                                                <p className="text-base font-bold text-brand-600">
+                                                <p className="text-base font-bold text-[#d6008b]">
                                                     R$ {product.price.toFixed(2).replace('.', ',')}
                                                 </p>
                                                 {product.originalPrice && product.originalPrice > product.price && (
-                                                    <p className="text-xs text-gray-400 line-through">
+                                                    <p className="text-xs text-white/40 line-through">
                                                         R$ {product.originalPrice.toFixed(2).replace('.', ',')}
                                                     </p>
                                                 )}
                                             </div>
-                                            <p className="mt-1 text-[10px] text-gray-400 font-medium italic">
+                                            <p className="mt-1 text-[10px] text-white/40 font-medium italic">
                                                 ou 3x de R$ {(product.price / 3).toFixed(2).replace('.', ',')}
                                             </p>
                                         </div>
@@ -268,8 +318,8 @@ function ProductsContent() {
 export default function ProductsPage() {
     return (
         <Suspense fallback={
-            <div className="flex min-h-screen items-center justify-center bg-gray-50">
-                <div className="h-12 w-12 animate-spin rounded-full border-4 border-brand-600 border-t-transparent"></div>
+            <div className="flex min-h-screen items-center justify-center">
+                <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#d6008b] border-t-transparent"></div>
             </div>
         }>
             <ProductsContent />

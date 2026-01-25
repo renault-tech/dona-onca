@@ -47,6 +47,14 @@ export interface AboutContent {
     };
 }
 
+export interface HomeBanner {
+    id: string;
+    name: string;
+    image: string;
+    link: string;
+    order: number;
+}
+
 interface ProductContextType {
     products: Product[];
     loading: boolean;
@@ -60,15 +68,24 @@ interface ProductContextType {
     categories: string[];
     aboutContent: AboutContent;
     updateAboutContent: (newContent: Partial<AboutContent>) => Promise<void>;
+    homeBanners: HomeBanner[];
+    updateHomeBanners: (banners: HomeBanner[]) => Promise<void>;
 }
 
 export const categories = ['Lingerie', 'Pijamas', 'Praia/Piscina', 'Sexshop'];
+
+const defaultHomeBanners: HomeBanner[] = [
+    { id: '1', name: 'Lingerie', image: '', link: '/produtos?categoria=Lingerie', order: 1 },
+    { id: '2', name: 'Toys', image: '', link: '/produtos?categoria=Sexshop', order: 2 },
+    { id: '3', name: 'Kits & Óleos', image: '', link: '/produtos?categoria=Sexshop', order: 3 },
+];
 
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
 
 export function ProductProvider({ children }: { children: ReactNode }) {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
+    const [homeBanners, setHomeBanners] = useState<HomeBanner[]>(defaultHomeBanners);
     const [aboutContent, setAboutContent] = useState<AboutContent>({
         hero: {
             title: 'Sobre a Dona Onça',
@@ -270,25 +287,60 @@ export function ProductProvider({ children }: { children: ReactNode }) {
         }
     };
 
+    const updateHomeBanners = async (banners: HomeBanner[]) => {
+        setHomeBanners(banners);
+
+        try {
+            const { error } = await supabase
+                .from('site_configs')
+                .upsert({ key: 'home_banners', content: banners }, { onConflict: 'key' });
+
+            if (error) {
+                console.warn('Supabase site_configs table might not exist yet. Using local state only.', error);
+                localStorage.setItem('donaonca-banners', JSON.stringify(banners));
+            }
+        } catch (error) {
+            console.error('Error saving banners:', error);
+            localStorage.setItem('donaonca-banners', JSON.stringify(banners));
+        }
+    };
+
     useEffect(() => {
         const loadContent = async () => {
             try {
-                const { data, error } = await supabase
+                // Load about content
+                const { data: aboutData } = await supabase
                     .from('site_configs')
                     .select('content')
                     .eq('key', 'about_page')
                     .maybeSingle();
 
-                if (data && data.content) {
-                    setAboutContent(data.content);
+                if (aboutData && aboutData.content) {
+                    setAboutContent(aboutData.content);
                 } else {
                     const local = localStorage.getItem('donaonca-about');
                     if (local) setAboutContent(JSON.parse(local));
+                }
+
+                // Load home banners
+                const { data: bannersData } = await supabase
+                    .from('site_configs')
+                    .select('content')
+                    .eq('key', 'home_banners')
+                    .maybeSingle();
+
+                if (bannersData && bannersData.content) {
+                    setHomeBanners(bannersData.content);
+                } else {
+                    const localBanners = localStorage.getItem('donaonca-banners');
+                    if (localBanners) setHomeBanners(JSON.parse(localBanners));
                 }
             } catch (err) {
                 console.warn('Using default content - persistence layer not ready');
                 const local = localStorage.getItem('donaonca-about');
                 if (local) setAboutContent(JSON.parse(local));
+                const localBanners = localStorage.getItem('donaonca-banners');
+                if (localBanners) setHomeBanners(JSON.parse(localBanners));
             }
         };
         loadContent();
@@ -309,6 +361,8 @@ export function ProductProvider({ children }: { children: ReactNode }) {
                 categories,
                 aboutContent,
                 updateAboutContent,
+                homeBanners,
+                updateHomeBanners,
             }}
         >
             {children}
