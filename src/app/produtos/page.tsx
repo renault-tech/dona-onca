@@ -83,7 +83,7 @@ function ProductsContent() {
                         alt=""
                         fill
                         className="object-cover"
-                        style={{ objectPosition: 'center top' }}
+                        style={{ objectPosition: 'center top', filter: 'brightness(1.1)' }}
                     />
                     {/* Gradient Overlay - lighter at top to show image */}
                     <div
@@ -91,9 +91,9 @@ function ProductsContent() {
                         style={{
                             background: `linear-gradient(to bottom, 
                                 rgba(13, 3, 8, 0) 0%, 
-                                rgba(13, 3, 8, 0.2) 40%, 
-                                rgba(13, 3, 8, 0.5) 70%, 
-                                rgba(5, 5, 5, 1) 100%)`
+                                rgba(13, 3, 8, 0.1) 40%, 
+                                rgba(13, 3, 8, 0.3) 70%, 
+                                rgba(5, 5, 5, 0.95) 100%)`
                         }}
                     />
                 </div>

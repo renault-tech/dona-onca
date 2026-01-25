@@ -170,8 +170,8 @@ export default function Home() {
                         fill
                         className="object-cover"
                         style={{
-                          // Filtro mais leve para manter lingeries mais visíveis
-                          filter: 'brightness(0.85) saturate(1.15) contrast(1.05)',
+                          // Filtro mais claro para dar mais destaque às lingeries
+                          filter: 'brightness(1.05) saturate(1.1) contrast(1.05)',
                         }}
                       />
                       {/* Overlay rosa para harmonizar com o tema */}

@@ -209,14 +209,16 @@ h6 {
 
 /* ===== INPUTS ===== */
 .input-dark {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.12);
+  /* Increased from 0.05 for better visibility */
   border: 1px solid var(--border-subtle);
   color: var(--text-main);
   border-radius: var(--radius-onca);
 }
 
 .input-dark::placeholder {
-  color: var(--text-subtle);
+  color: rgba(255, 255, 255, 0.5);
+  /* Lighter than before */
 }
 
 .input-dark:focus {
