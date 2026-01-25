@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useProducts } from '@/contexts/ProductContext';
+import BackButton from '@/components/BackButton';
 
 export default function AboutPage() {
     const { aboutContent } = useProducts();
@@ -20,64 +21,65 @@ export default function AboutPage() {
                         className="object-cover"
                         style={{ objectPosition: 'center top' }}
                     />
-                    {/* Gradient Overlay - fade to dark */}
+                    {/* Gradient Overlay - lighter at top to show image */}
                     <div
                         className="absolute inset-0"
                         style={{
                             background: `linear-gradient(to bottom, 
-                                rgba(13, 3, 8, 0.3) 0%, 
-                                rgba(13, 3, 8, 0.6) 50%, 
+                                rgba(13, 3, 8, 0) 0%, 
+                                rgba(13, 3, 8, 0.2) 40%, 
+                                rgba(13, 3, 8, 0.5) 70%, 
                                 rgba(5, 5, 5, 1) 100%)`
-                        }}
-                    />
-                    {/* Reduce pink glow */}
-                    <div
-                        className="absolute inset-0"
-                        style={{
-                            background: `radial-gradient(ellipse at 0% 0%, rgba(5, 5, 5, 0.5) 0%, transparent 40%)`
                         }}
                     />
                 </div>
 
-                <div className="relative z-10 mx-auto max-w-4xl px-4 text-center">
-                    {/* Logo/Image */}
-                    <div
-                        className="relative h-36 w-36 mx-auto mb-8 rounded-full overflow-hidden flex items-center justify-center"
-                        style={{
-                            background: 'linear-gradient(135deg, rgba(214, 0, 139, 0.2) 0%, rgba(26, 5, 16, 0.8) 100%)',
-                            border: '2px solid #d6008b',
-                            boxShadow: '0 0 30px rgba(214, 0, 139, 0.4)',
-                        }}
-                    >
-                        {hero.image ? (
-                            <Image
-                                src={hero.image}
-                                alt={hero.title}
-                                fill
-                                className="object-contain p-2"
-                                priority
-                            />
-                        ) : (
-                            <Image
-                                src="/onca-watermark.png"
-                                alt="Dona Onça"
-                                fill
-                                className="object-contain p-2"
-                                style={{ filter: 'drop-shadow(0 0 10px rgba(214, 0, 139, 0.5))' }}
-                                priority
-                            />
-                        )}
+                <div className="relative z-10 mx-auto max-w-4xl px-4">
+                    {/* Back Button */}
+                    <div className="mb-8">
+                        <BackButton fallbackHref="/" />
                     </div>
 
-                    <h1
-                        className="text-4xl font-bold text-white md:text-5xl tracking-wide"
-                        style={{ fontFamily: 'var(--font-cinzel), Cinzel, serif' }}
-                    >
-                        {hero.title}
-                    </h1>
-                    <p className="mt-4 text-xl text-white/60 font-medium italic max-w-2xl mx-auto">
-                        {hero.tagline}
-                    </p>
+                    <div className="text-center">
+                        {/* Logo/Image */}
+                        <div
+                            className="relative h-36 w-36 mx-auto mb-8 rounded-full overflow-hidden flex items-center justify-center"
+                            style={{
+                                background: 'linear-gradient(135deg, rgba(214, 0, 139, 0.2) 0%, rgba(26, 5, 16, 0.8) 100%)',
+                                border: '2px solid #d6008b',
+                                boxShadow: '0 0 30px rgba(214, 0, 139, 0.4)',
+                            }}
+                        >
+                            {hero.image ? (
+                                <Image
+                                    src={hero.image}
+                                    alt={hero.title}
+                                    fill
+                                    className="object-contain p-2"
+                                    priority
+                                />
+                            ) : (
+                                <Image
+                                    src="/onca-watermark.png"
+                                    alt="Dona Onça"
+                                    fill
+                                    className="object-contain p-2"
+                                    style={{ filter: 'drop-shadow(0 0 10px rgba(214, 0, 139, 0.5))' }}
+                                    priority
+                                />
+                            )}
+                        </div>
+
+                        <h1
+                            className="text-4xl font-bold text-white md:text-5xl tracking-wide"
+                            style={{ fontFamily: 'var(--font-cinzel), Cinzel, serif' }}
+                        >
+                            {hero.title}
+                        </h1>
+                        <p className="mt-4 text-xl text-white/60 font-medium italic max-w-2xl mx-auto">
+                            {hero.tagline}
+                        </p>
+                    </div>
                 </div>
             </section>
 

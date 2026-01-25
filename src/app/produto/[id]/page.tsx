@@ -7,6 +7,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useProducts } from '@/contexts/ProductContext';
 import { useCart } from '@/contexts/CartContext';
 import FavoriteButton from '@/components/FavoriteButton';
+import BackButton from '@/components/BackButton';
 
 export default function ProductPage() {
     const params = useParams();
@@ -69,6 +70,11 @@ export default function ProductPage() {
     return (
         <div className="min-h-screen bg-white pb-24 lg:pb-0">
             <div className="mx-auto max-w-7xl px-4 py-8">
+                {/* Back Button */}
+                <div className="mb-4">
+                    <BackButton label="Voltar" fallbackHref="/produtos" />
+                </div>
+
                 {/* Breadcrumb */}
                 <nav className="mb-8 text-sm text-gray-500">
                     <Link href="/" className="hover:text-brand-600">Home</Link>

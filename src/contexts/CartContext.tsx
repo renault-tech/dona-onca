@@ -1,6 +1,7 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface CartItem {
     id: number;
@@ -29,23 +30,36 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
     const [items, setItems] = useState<CartItem[]>([]);
+    const { user } = useAuth();
 
-    // Load from localStorage
+    // Generate storage key based on user ID
+    const getStorageKey = useCallback(() => {
+        return user ? `donaonca-cart-${user.id}` : 'donaonca-cart-guest';
+    }, [user]);
+
+    // Load from localStorage based on user
     useEffect(() => {
-        const saved = localStorage.getItem('donaonca-cart');
+        const storageKey = getStorageKey();
+        const saved = localStorage.getItem(storageKey);
         if (saved) {
             try {
                 setItems(JSON.parse(saved));
             } catch (e) {
                 console.error('Error loading cart', e);
+                setItems([]);
             }
+        } else {
+            setItems([]);
         }
-    }, []);
+    }, [getStorageKey]);
 
     // Save to localStorage
     useEffect(() => {
-        localStorage.setItem('donaonca-cart', JSON.stringify(items));
-    }, [items]);
+        const storageKey = getStorageKey();
+        if (items.length > 0 || localStorage.getItem(storageKey)) {
+            localStorage.setItem(storageKey, JSON.stringify(items));
+        }
+    }, [items, getStorageKey]);
 
     const addItem = (item: Omit<CartItem, 'id'>) => {
         setItems((prev) => {

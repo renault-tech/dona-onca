@@ -231,19 +231,19 @@ export default function TeamPage() {
     );
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-12">
-            <div className="border-b border-gray-200 bg-white">
+        <div className="min-h-screen bg-gray-900 pb-12">
+            <div className="border-b border-gray-800 bg-gray-900/95 backdrop-blur-md sticky top-0 z-30">
                 <div className="mx-auto max-w-7xl px-4 py-8">
                     <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
                         <div className="flex items-center gap-4">
-                            <Link href="/admin" className="flex h-10 w-10 items-center justify-center rounded-xl text-gray-600 transition-colors hover:bg-gray-100">
+                            <Link href="/admin" className="flex h-10 w-10 items-center justify-center rounded-xl text-gray-400 transition-colors hover:bg-gray-800">
                                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                                 </svg>
                             </Link>
                             <div>
-                                <h1 className="text-2xl font-bold text-gray-900">Gestão de Equipe</h1>
-                                <p className="text-sm text-gray-500">Administradores e Membros Visíveis</p>
+                                <h1 className="text-2xl font-bold text-white">Gestão de Equipe</h1>
+                                <p className="text-sm text-gray-400">Administradores e Membros Visíveis</p>
                             </div>
                         </div>
                     </div>
@@ -255,7 +255,7 @@ export default function TeamPage() {
                             placeholder="Buscar membros..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="bg-white px-4 py-2.5 pl-4 text-sm w-full max-w-sm rounded-xl border border-gray-200 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                            className="bg-gray-900 px-4 py-2.5 pl-4 text-sm w-full max-w-sm rounded-xl border border-gray-600 text-white focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
                         />
                         <button
                             onClick={() => {
@@ -270,33 +270,33 @@ export default function TeamPage() {
 
                     {/* Add New Member Form - Inline */}
                     {editingEmail === 'NEW_MEMBER' && (
-                        <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                            <h3 className="text-lg font-bold text-gray-900 mb-4">Adicionar Novo Membro (Site)</h3>
+                        <div className="mt-6 rounded-2xl border border-gray-700 bg-gray-800 p-6 shadow-sm">
+                            <h3 className="text-lg font-bold text-white mb-4">Adicionar Novo Membro (Site)</h3>
                             <div className="grid gap-4 md:grid-cols-3">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Nome Completo</label>
+                                    <label className="block text-sm font-medium text-gray-400 mb-1">Nome Completo</label>
                                     <input
                                         value={editForm.name}
                                         onChange={e => setEditForm({ ...editForm, name: e.target.value })}
-                                        className="w-full rounded-lg border border-gray-300 p-2 text-sm"
+                                        className="w-full rounded-lg border border-gray-600 bg-gray-900 text-white p-2 text-sm focus:border-brand-500"
                                         placeholder="Ex: Ana Silva"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Cargo</label>
+                                    <label className="block text-sm font-medium text-gray-400 mb-1">Cargo</label>
                                     <input
                                         value={editForm.role}
                                         onChange={e => setEditForm({ ...editForm, role: e.target.value })}
-                                        className="w-full rounded-lg border border-gray-300 p-2 text-sm"
+                                        className="w-full rounded-lg border border-gray-600 bg-gray-900 text-white p-2 text-sm focus:border-brand-500"
                                         placeholder="Ex: Gerente"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">URL da Foto (Opcional)</label>
+                                    <label className="block text-sm font-medium text-gray-400 mb-1">URL da Foto (Opcional)</label>
                                     <input
                                         value={editForm.image}
                                         onChange={e => setEditForm({ ...editForm, image: e.target.value })}
-                                        className="w-full rounded-lg border border-gray-300 p-2 text-sm"
+                                        className="w-full rounded-lg border border-gray-600 bg-gray-900 text-white p-2 text-sm focus:border-brand-500"
                                         placeholder="https://..."
                                     />
                                 </div>
@@ -304,7 +304,7 @@ export default function TeamPage() {
                             <div className="mt-4 flex justify-end gap-3">
                                 <button
                                     onClick={() => setEditingEmail(null)}
-                                    className="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                                    className="rounded-lg px-4 py-2 text-sm font-medium text-gray-400 hover:text-white hover:bg-gray-700"
                                 >
                                     Cancelar
                                 </button>
@@ -330,7 +330,7 @@ export default function TeamPage() {
                                         }
                                     }}
                                     disabled={!!processing}
-                                    className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
+                                    className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
                                 >
                                     {processing ? 'Salvando...' : 'Adicionar Membro'}
                                 </button>
@@ -341,21 +341,21 @@ export default function TeamPage() {
             </div>
 
             <div className="mx-auto max-w-7xl px-4 py-8">
-                <div className="rounded-2xl bg-white shadow-sm ring-1 ring-gray-200 overflow-hidden">
+                <div className="rounded-2xl bg-gray-800 shadow-sm ring-1 ring-gray-700 overflow-hidden">
                     <table className="w-full border-collapse text-left">
-                        <thead className="bg-gray-50 border-b border-gray-200">
+                        <thead className="bg-gray-900/50 border-b border-gray-700">
                             <tr>
-                                <th className="px-6 py-4 text-sm font-semibold text-gray-900">Membro</th>
-                                <th className="px-6 py-4 text-sm font-semibold text-gray-900 text-center">Admin (Sistema)</th>
-                                <th className="px-6 py-4 text-sm font-semibold text-gray-900 text-center">Visível (Site)</th>
-                                <th className="px-6 py-4 text-sm font-semibold text-gray-900 text-right">Ações</th>
+                                <th className="px-6 py-4 text-sm font-semibold text-gray-200">Membro</th>
+                                <th className="px-6 py-4 text-sm font-semibold text-gray-200 text-center">Admin (Sistema)</th>
+                                <th className="px-6 py-4 text-sm font-semibold text-gray-200 text-center">Visível (Site)</th>
+                                <th className="px-6 py-4 text-sm font-semibold text-gray-200 text-right">Ações</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
+                        <tbody className="divide-y divide-gray-700">
                             {filteredUsers.map((user) => (
                                 <tr
                                     key={user.email || user.full_name}
-                                    className="hover:bg-gray-50 cursor-pointer"
+                                    className="hover:bg-gray-700/50 cursor-pointer transition-colors"
                                     onClick={() => user.id && router.push(`/admin/customers/${user.id}`)}
                                 >
                                     <td className="px-6 py-4">
@@ -363,14 +363,14 @@ export default function TeamPage() {
                                             {user.display_image ? (
                                                 <Image src={user.display_image} alt="" width={40} height={40} className="rounded-full object-cover" />
                                             ) : (
-                                                <div className="h-10 w-10 rounded-full bg-brand-100 flex items-center justify-center text-brand-600 font-bold">
+                                                <div className="h-10 w-10 rounded-full bg-brand-900/50 flex items-center justify-center text-brand-400 font-bold border border-brand-500/20">
                                                     {user.full_name.charAt(0)}
                                                 </div>
                                             )}
                                             <div>
-                                                <p className="font-medium text-gray-900">{user.full_name}</p>
-                                                <p className="text-xs text-gray-500">{user.email}</p>
-                                                {user.role && <p className="text-xs text-brand-600 font-medium">{user.role}</p>}
+                                                <p className="font-medium text-white">{user.full_name}</p>
+                                                <p className="text-xs text-gray-400">{user.email}</p>
+                                                {user.role && <p className="text-xs text-brand-400 font-medium">{user.role}</p>}
                                             </div>
                                         </div>
                                     </td>
@@ -380,7 +380,7 @@ export default function TeamPage() {
                                         <button
                                             onClick={() => handleToggleAdmin(user)}
                                             disabled={!!processing || user.source === 'site_only'}
-                                            className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${user.is_admin ? 'bg-brand-600' : 'bg-gray-200'} ${user.source === 'site_only' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                            className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${user.is_admin ? 'bg-brand-600' : 'bg-gray-600'} ${user.source === 'site_only' ? 'opacity-50 cursor-not-allowed' : ''}`}
                                         >
                                             <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${user.is_admin ? 'translate-x-5' : 'translate-x-0'}`} />
                                         </button>
@@ -392,7 +392,7 @@ export default function TeamPage() {
                                         <button
                                             onClick={() => handleToggleVisibility(user)}
                                             disabled={!!processing}
-                                            className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${user.is_visible ? 'bg-green-600' : 'bg-gray-200'}`}
+                                            className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${user.is_visible ? 'bg-green-600' : 'bg-gray-600'}`}
                                         >
                                             <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${user.is_visible ? 'translate-x-5' : 'translate-x-0'}`} />
                                         </button>
@@ -400,27 +400,27 @@ export default function TeamPage() {
 
                                     <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
                                         {editingEmail === (user.email || user.full_name) ? (
-                                            <div className="flex flex-col gap-2 absolute right-12 bg-white shadow-xl p-4 rounded-xl z-10 border border-gray-100 min-w-[250px]">
-                                                <p className="text-xs font-bold text-gray-500 mb-1">Editar Exibição</p>
+                                            <div className="flex flex-col gap-2 absolute right-12 bg-gray-800 shadow-xl p-4 rounded-xl z-10 border border-gray-700 min-w-[250px]">
+                                                <p className="text-xs font-bold text-gray-400 mb-1">Editar Exibição</p>
                                                 <input
                                                     value={editForm.name}
                                                     onChange={e => setEditForm({ ...editForm, name: e.target.value })}
-                                                    className="border rounded p-1 text-sm" placeholder="Nome"
+                                                    className="border border-gray-600 bg-gray-900 text-white rounded p-1 text-sm" placeholder="Nome"
                                                 />
                                                 <input
                                                     value={editForm.role}
                                                     onChange={e => setEditForm({ ...editForm, role: e.target.value })}
-                                                    className="border rounded p-1 text-sm" placeholder="Cargo"
+                                                    className="border border-gray-600 bg-gray-900 text-white rounded p-1 text-sm" placeholder="Cargo"
                                                 />
                                                 <div className="flex justify-end gap-2 mt-2">
-                                                    <button onClick={() => setEditingEmail(null)} className="text-xs text-gray-500">Cancelar</button>
-                                                    <button onClick={handleSaveEdit} className="text-xs bg-brand-600 text-white px-2 py-1 rounded">Salvar</button>
+                                                    <button onClick={() => setEditingEmail(null)} className="text-xs text-gray-500 hover:text-gray-300">Cancelar</button>
+                                                    <button onClick={handleSaveEdit} className="text-xs bg-brand-600 text-white px-2 py-1 rounded hover:bg-brand-700">Salvar</button>
                                                 </div>
                                             </div>
                                         ) : (
                                             <button
                                                 onClick={() => handleEdit(user)}
-                                                className="text-gray-400 hover:text-brand-600"
+                                                className="text-gray-500 hover:text-brand-400"
                                                 disabled={!user.is_visible}
                                                 title={!user.is_visible ? "Torne visível organizar detalhes" : "Editar detalhes de exibição"}
                                             >

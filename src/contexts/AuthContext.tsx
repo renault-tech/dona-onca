@@ -9,6 +9,14 @@ export interface UserProfile {
     email: string;
     full_name: string | null;
     phone: string | null;
+    cpf: string | null;
+    cep: string | null;
+    address: string | null;
+    number: string | null;
+    complement: string | null;
+    neighborhood: string | null;
+    city: string | null;
+    state: string | null;
     is_admin: boolean;
     created_at: string;
 }
@@ -57,7 +65,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // para não bloquear a UI
         const quickTimeout = setTimeout(() => setLoading(false), 100);
 
-        supabase.auth.getSession().then(({ data: { session } }) => {
+        supabase.auth.getSession().then(({ data: { session }, error }) => {
+            // Se houver erro de refresh token, limpar sessão silenciosamente
+            if (error) {
+                console.warn('Session error (token may be expired):', error.message);
+                supabase.auth.signOut();
+                setUser(null);
+                setProfile(null);
+                clearTimeout(quickTimeout);
+                setLoading(false);
+                return;
+            }
+
             if (session?.user) {
                 setUser(session.user);
                 // Perfil carrega em background, não bloqueia
@@ -65,9 +84,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
             clearTimeout(quickTimeout);
             setLoading(false);
+        }).catch((err) => {
+            // Captura qualquer erro não tratado
+            console.warn('Auth initialization error:', err);
+            setUser(null);
+            setProfile(null);
+            clearTimeout(quickTimeout);
+            setLoading(false);
         });
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            // Se o token expirar ou for inválido, limpar estado
+            if (event === 'TOKEN_REFRESHED' && !session) {
+                setUser(null);
+                setProfile(null);
+                return;
+            }
+
+            if (event === 'SIGNED_OUT') {
+                setUser(null);
+                setProfile(null);
+                return;
+            }
+
             setUser(session?.user ?? null);
             if (session?.user) {
                 fetchProfile(session.user.id).then(setProfile);

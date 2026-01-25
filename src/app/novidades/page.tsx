@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useProducts } from '@/contexts/ProductContext';
 import FavoriteButton from '@/components/FavoriteButton';
+import BackButton from '@/components/BackButton';
 
 export default function NovidadesPage() {
     const { products } = useProducts();
@@ -27,44 +28,45 @@ export default function NovidadesPage() {
                         className="object-cover"
                         style={{ objectPosition: 'center top' }}
                     />
-                    {/* Gradient Overlay - fade to dark */}
+                    {/* Gradient Overlay - lighter at top to show image */}
                     <div
                         className="absolute inset-0"
                         style={{
                             background: `linear-gradient(to bottom, 
-                                rgba(13, 3, 8, 0.3) 0%, 
-                                rgba(13, 3, 8, 0.6) 50%, 
+                                rgba(13, 3, 8, 0) 0%, 
+                                rgba(13, 3, 8, 0.2) 40%, 
+                                rgba(13, 3, 8, 0.5) 70%, 
                                 rgba(5, 5, 5, 1) 100%)`
-                        }}
-                    />
-                    {/* Reduce pink glow */}
-                    <div
-                        className="absolute inset-0"
-                        style={{
-                            background: `radial-gradient(ellipse at 0% 0%, rgba(5, 5, 5, 0.5) 0%, transparent 40%)`
                         }}
                     />
                 </div>
 
-                <div className="relative z-10 mx-auto max-w-7xl px-4 text-center">
-                    <span
-                        className="mb-4 inline-block rounded-full px-6 py-2 text-sm font-medium text-white"
-                        style={{
-                            background: 'linear-gradient(135deg, rgba(214, 0, 139, 0.4) 0%, rgba(214, 0, 139, 0.2) 100%)',
-                            border: '1px solid rgba(214, 0, 139, 0.5)',
-                        }}
-                    >
-                        ✨ Novidades
-                    </span>
-                    <h1
-                        className="text-4xl font-bold text-white md:text-5xl tracking-wide"
-                        style={{ fontFamily: 'var(--font-cinzel), Cinzel, serif' }}
-                    >
-                        Acabou de Chegar
-                    </h1>
-                    <p className="mt-4 text-white/60 text-lg">
-                        Os lançamentos mais recentes da Dona Onça
-                    </p>
+                <div className="relative z-10 mx-auto max-w-7xl px-4">
+                    {/* Back Button */}
+                    <div className="mb-8">
+                        <BackButton fallbackHref="/" />
+                    </div>
+
+                    <div className="text-center">
+                        <span
+                            className="mb-4 inline-block rounded-full px-6 py-2 text-sm font-medium text-white"
+                            style={{
+                                background: 'linear-gradient(135deg, rgba(214, 0, 139, 0.4) 0%, rgba(214, 0, 139, 0.2) 100%)',
+                                border: '1px solid rgba(214, 0, 139, 0.5)',
+                            }}
+                        >
+                            ✨ Novidades
+                        </span>
+                        <h1
+                            className="text-4xl font-bold text-white md:text-5xl tracking-wide"
+                            style={{ fontFamily: 'var(--font-cinzel), Cinzel, serif' }}
+                        >
+                            Acabou de Chegar
+                        </h1>
+                        <p className="mt-4 text-white/60 text-lg">
+                            Os lançamentos mais recentes da Dona Onça
+                        </p>
+                    </div>
                 </div>
             </section>
 

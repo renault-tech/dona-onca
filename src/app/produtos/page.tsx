@@ -85,21 +85,15 @@ function ProductsContent() {
                         className="object-cover"
                         style={{ objectPosition: 'center top' }}
                     />
-                    {/* Gradient Overlay - fade to dark */}
+                    {/* Gradient Overlay - lighter at top to show image */}
                     <div
                         className="absolute inset-0"
                         style={{
                             background: `linear-gradient(to bottom, 
-                                rgba(13, 3, 8, 0.3) 0%, 
-                                rgba(13, 3, 8, 0.6) 50%, 
+                                rgba(13, 3, 8, 0) 0%, 
+                                rgba(13, 3, 8, 0.2) 40%, 
+                                rgba(13, 3, 8, 0.5) 70%, 
                                 rgba(5, 5, 5, 1) 100%)`
-                        }}
-                    />
-                    {/* Reduce pink glow */}
-                    <div
-                        className="absolute inset-0"
-                        style={{
-                            background: `radial-gradient(ellipse at 0% 0%, rgba(5, 5, 5, 0.5) 0%, transparent 40%)`
                         }}
                     />
                 </div>

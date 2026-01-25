@@ -34,6 +34,12 @@ export default function Navbar() {
                 {/* Desktop Navigation */}
                 <div className="hidden items-center gap-8 lg:flex">
                     <Link
+                        href="/"
+                        className="text-sm font-medium text-white/80 hover:text-[#d6008b] transition-colors"
+                    >
+                        Home
+                    </Link>
+                    <Link
                         href="/produtos"
                         className="text-sm font-medium text-white/80 hover:text-[#d6008b] transition-colors"
                     >
@@ -197,6 +203,13 @@ export default function Navbar() {
             {isMenuOpen && (
                 <div className="border-t border-white/10 glass px-4 py-4 lg:hidden">
                     <div className="flex flex-col gap-3">
+                        <Link
+                            href="/"
+                            className="rounded-lg px-3 py-2 text-sm font-medium text-white/80 hover:bg-white/10 hover:text-[#d6008b] transition-colors"
+                            onClick={() => setIsMenuOpen(false)}
+                        >
+                            Home
+                        </Link>
                         <Link
                             href="/produtos"
                             className="rounded-lg px-3 py-2 text-sm font-medium text-white/80 hover:bg-white/10 hover:text-[#d6008b] transition-colors"
