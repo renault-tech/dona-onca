@@ -125,15 +125,7 @@ export default function Home() {
         {/* Background com silhueta da onça */}
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-[#050505]" />
-          {/* Silhueta grande da onça no fundo */}
-          <div className="absolute right-0 top-0 w-[60%] h-full opacity-[0.06] pointer-events-none">
-            <Image
-              src="/onca-watermark.png"
-              alt=""
-              fill
-              className="object-contain object-right"
-            />
-          </div>
+
           {/* Glow rosa no centro inferior */}
           <div
             className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-1/2"
