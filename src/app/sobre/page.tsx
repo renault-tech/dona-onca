@@ -60,7 +60,7 @@ export default function AboutPage() {
                                 />
                             ) : (
                                 <Image
-                                    src="/onca-watermark.png"
+                                    src="/onca-watermark.webp"
                                     alt="Dona Onça"
                                     fill
                                     className="object-contain p-2"

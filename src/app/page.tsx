@@ -73,12 +73,11 @@ export default function Home() {
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
           <div className="relative w-[120%] h-[120%] opacity-[0.08]">
             <Image
-              src="/onca-watermark.png"
+              src="/onca-watermark.webp"
               alt=""
               fill
               className="object-contain"
               style={{ objectPosition: 'center center' }}
-              priority
             />
           </div>
         </div>

@@ -102,7 +102,7 @@ export default function Footer() {
                         <div className="flex items-center gap-3 mb-3">
                             <div className="relative h-12 w-12">
                                 <Image
-                                    src="/onca-watermark.png"
+                                    src="/onca-watermark.webp"
                                     alt="Dona Onça"
                                     fill
                                     className="object-contain"
