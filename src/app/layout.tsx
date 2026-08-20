@@ -1,24 +1,31 @@
 import type { Metadata } from "next";
-import { Montserrat, Cinzel } from "next/font/google";
+import { Fraunces, Archivo } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Providers from "@/components/Providers";
 import Footer from "@/components/Footer";
 
-const montserrat = Montserrat({
-  variable: "--font-montserrat",
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  axes: ["SOFT", "WONK", "opsz"],
+  display: "swap",
 });
 
-const cinzel = Cinzel({
-  variable: "--font-cinzel",
+const archivo = Archivo({
+  variable: "--font-archivo",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://dona-onca.vercel.app";
 
 export const metadata: Metadata = {
-  title: "Dona Onça | Lingerie & Lifestyle",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "Dona Onça | Lingerie & Lifestyle",
+    template: "%s | Dona Onça",
+  },
   description: "Elegância e sensualidade em cada peça. Descubra nossa coleção exclusiva de lingerie e produtos íntimos.",
   keywords: ["lingerie", "moda íntima", "sensualidade", "elegância", "Dona Onça"],
   openGraph: {
@@ -26,6 +33,14 @@ export const metadata: Metadata = {
     description: "Elegância e sensualidade em cada peça.",
     siteName: "Dona Onça",
     type: "website",
+    locale: "pt_BR",
+    images: ["/og-default.jpg"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Dona Onça | Lingerie & Lifestyle",
+    description: "Elegância e sensualidade em cada peça.",
+    images: ["/og-default.jpg"],
   },
 };
 
@@ -35,8 +50,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className="dark">
-      <body className={`${montserrat.variable} ${cinzel.variable} font-sans antialiased min-h-screen`}>
+    <html lang="pt-BR" data-theme="dark">
+      <body className={`${fraunces.variable} ${archivo.variable} font-sans antialiased min-h-screen`}>
         <Providers>
           <Navbar />
           <main>{children}</main>

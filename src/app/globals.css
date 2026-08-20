@@ -1,53 +1,112 @@
 @import "tailwindcss";
 
-/* ===== TEMA DONA ONÇA LUXURY ===== */
-/* Fonte Cinzel carregada via next/font/google no layout.tsx */
+/*
+ * ===== DONA ONÇA — DESIGN SYSTEM =====
+ * "Tinta sobre pele" — editorial gráfico, não neon.
+ *
+ * Três camadas:
+ *   1. Paleta bruta        — valores de cor puros, sem significado atribuído
+ *   2. Papéis semânticos   — o que a cor SIGNIFICA na interface (bg, fg, accent...)
+ *   3. Classes de componente — construídas só a partir da camada 2
+ *
+ * O tema padrão (:root) é o escuro da vitrine — é o que 33 das 34 páginas usam.
+ * [data-theme="light"] sobrescreve os papéis para o admin e formulários claros.
+ */
 
+/* ---------- Camada 1: paleta bruta (não usar direto em componentes) ---------- */
 :root {
-  /* Dark Luxury Theme */
-  --bg-dark: #050505;
-  --bg-gradient-top: #1a0510;
-  --primary-neon: #d6008b;
-  --primary-neon-rgb: 214, 0, 139;
+  --raw-black: #050505;
+  --raw-black-warm: #1a0510;
+  --raw-white: #ffffff;
 
-  /* Text Colors */
-  --text-main: #ffffff;
-  --text-muted: #cccccc;
-  --text-subtle: #999999;
-
-  /* Brand Palette (Rosa Magenta Neon) */
-  --brand-50: #fff0f7;
-  --brand-100: #ffe4f1;
-  --brand-200: #ffc9e3;
-  --brand-300: #ff9fcc;
-  --brand-400: #ff5faa;
-  --brand-500: #ff2d91;
-  --brand-600: #d6008b;
-  --brand-700: #b80073;
-  --brand-800: #97005e;
-  --brand-900: #7d0050;
-
-  /* Surface Colors */
-  --surface-dark: rgba(255, 255, 255, 0.03);
-  --surface-card: rgba(255, 255, 255, 0.05);
-  --surface-elevated: rgba(255, 255, 255, 0.08);
-
-  /* Border Colors */
-  --border-subtle: rgba(255, 255, 255, 0.1);
-  --border-neon: rgba(214, 0, 139, 0.5);
-
-  /* Custom Properties */
-  --radius-onca: 1.5rem;
-  --glow-neon: 0 0 15px rgba(214, 0, 139, 0.5);
-  --glow-neon-strong: 0 0 25px rgba(214, 0, 139, 0.8);
+  --raw-magenta-50: #fff0f7;
+  --raw-magenta-100: #ffe4f1;
+  --raw-magenta-200: #ffc9e3;
+  --raw-magenta-300: #ff9fcc;
+  --raw-magenta-400: #ff5faa;
+  --raw-magenta-500: #ff2d91;
+  --raw-magenta-600: #d6008b;
+  --raw-magenta-700: #b80073;
+  --raw-magenta-800: #97005e;
+  --raw-magenta-900: #7d0050;
 }
 
-@theme inline {
-  --color-background: var(--bg-dark);
-  --color-foreground: var(--text-main);
-  --color-muted: var(--text-muted);
+/* ---------- Camada 2: papéis semânticos ---------- */
+:root {
+  /* Superfícies */
+  --color-bg: var(--raw-black);
+  --color-bg-warm: var(--raw-black-warm);
+  --color-surface: rgba(255, 255, 255, 0.04);
+  --color-surface-raised: rgba(255, 255, 255, 0.08);
 
-  /* Brand palette */
+  /* Texto */
+  --color-fg: var(--raw-white);
+  --color-fg-muted: rgba(255, 255, 255, 0.68);
+  --color-fg-subtle: rgba(255, 255, 255, 0.45);
+  --color-fg-on-accent: var(--raw-black);
+
+  /* Bordas */
+  --color-border: rgba(255, 255, 255, 0.12);
+  --color-border-strong: rgba(255, 255, 255, 0.24);
+  --color-border-accent: rgba(214, 0, 139, 0.55);
+
+  /* Acento — a "tinta" magenta */
+  --color-accent: var(--raw-magenta-600);
+  --color-accent-strong: var(--raw-magenta-500);
+  --color-accent-soft: var(--raw-magenta-300);
+  --color-accent-rgb: 214, 0, 139;
+
+  /* Formas e sombra */
+  --radius-onca: 1.5rem;
+  --radius-pill: 999px;
+  --glow-accent: 0 0 15px rgba(214, 0, 139, 0.5);
+  --glow-accent-strong: 0 0 25px rgba(214, 0, 139, 0.8);
+
+  /* Escala Tailwind brand-* (compat) */
+  --brand-50: var(--raw-magenta-50);
+  --brand-100: var(--raw-magenta-100);
+  --brand-200: var(--raw-magenta-200);
+  --brand-300: var(--raw-magenta-300);
+  --brand-400: var(--raw-magenta-400);
+  --brand-500: var(--raw-magenta-500);
+  --brand-600: var(--raw-magenta-600);
+  --brand-700: var(--raw-magenta-700);
+  --brand-800: var(--raw-magenta-800);
+  --brand-900: var(--raw-magenta-900);
+}
+
+/* Tema claro — usado hoje por /admin e (temporariamente, até a Fase 6) por
+   /sacola, /checkout, /categorias, /minha-conta, /conta/dados */
+[data-theme="light"] {
+  --color-bg: #f9fafb;
+  --color-bg-warm: #f3f4f6;
+  --color-surface: #ffffff;
+  --color-surface-raised: #ffffff;
+
+  --color-fg: #111827;
+  --color-fg-muted: #4b5563;
+  --color-fg-subtle: #9ca3af;
+  --color-fg-on-accent: #ffffff;
+
+  --color-border: #e5e7eb;
+  --color-border-strong: #d1d5db;
+  --color-border-accent: var(--raw-magenta-600);
+}
+
+/* Ponte para as utilities do Tailwind v4 (CSS-first, sem tailwind.config) */
+@theme inline {
+  --color-background: var(--color-bg);
+  --color-foreground: var(--color-fg);
+  --color-muted: var(--color-fg-muted);
+
+  --color-bg: var(--color-bg);
+  --color-surface: var(--color-surface);
+  --color-fg: var(--color-fg);
+  --color-fg-muted: var(--color-fg-muted);
+  --color-fg-subtle: var(--color-fg-subtle);
+  --color-border: var(--color-border);
+  --color-accent: var(--color-accent);
+
   --color-brand-50: var(--brand-50);
   --color-brand-100: var(--brand-100);
   --color-brand-200: var(--brand-200);
@@ -59,179 +118,237 @@
   --color-brand-800: var(--brand-800);
   --color-brand-900: var(--brand-900);
 
-  /* Fonts */
-  --font-sans: "Montserrat", system-ui, sans-serif;
-  --font-serif: "Cinzel", Georgia, serif;
+  /* Fontes — ligadas às variáveis reais do next/font (não nomes de família
+     soltos). É isto que faz `font-display`/`font-sans` funcionarem e permite
+     apagar os ~40 `style={{ fontFamily: 'var(--font-cinzel)...' }}` inline. */
+  --font-sans: var(--font-archivo), system-ui, sans-serif;
+  --font-display: var(--font-fraunces), Georgia, serif;
 }
 
-/* ===== BASE STYLES ===== */
+/* ===== BASE ===== */
 html {
   scroll-behavior: smooth;
 }
 
 body {
-  background: linear-gradient(to bottom, var(--bg-gradient-top), var(--bg-dark));
+  background: linear-gradient(to bottom, var(--color-bg-warm), var(--color-bg));
   background-attachment: fixed;
-  color: var(--text-main);
+  color: var(--color-fg);
   font-family: var(--font-sans);
   min-height: 100vh;
 }
 
-/* ===== TYPOGRAPHY ===== */
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: "Cinzel", Georgia, serif;
-  color: var(--text-main);
-  letter-spacing: 0.05em;
+[data-theme="light"] body {
+  background: var(--color-bg);
+  background-attachment: initial;
 }
 
-/* ===== UTILITY CLASSES ===== */
-.text-brand {
-  color: var(--primary-neon);
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    color: var(--color-fg);
+    letter-spacing: 0.01em;
+  }
 }
 
-.bg-brand {
-  background-color: var(--primary-neon);
-}
-
-.border-brand {
-  border-color: var(--primary-neon);
-}
-
-/* Glassmorphism */
-.glass {
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
-.glass-light {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
-/* Neon Glow Effects */
-.glow-neon {
-  box-shadow: var(--glow-neon);
-}
-
-.glow-neon-strong {
-  box-shadow: var(--glow-neon-strong);
-}
-
-.text-glow {
-  text-shadow: 0 0 10px rgba(214, 0, 139, 0.5);
-}
-
-/* Logo styling */
-.logo-glow {
-  filter: drop-shadow(0 0 8px rgba(214, 0, 139, 0.6));
-}
-
-/* ===== GHOST BUTTONS ===== */
-.btn-ghost {
-  background-color: transparent;
-  border: 2px solid var(--primary-neon);
-  color: var(--text-main);
-  border-radius: 50px;
-  text-transform: uppercase;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  box-shadow: 0 0 10px rgba(214, 0, 139, 0.3);
-  transition: all 0.3s ease;
-}
-
-.btn-ghost:hover {
-  background-color: var(--primary-neon);
-  box-shadow: var(--glow-neon-strong);
-  transform: translateY(-2px);
-}
-
-/* Primary Button (Filled) */
-.btn-primary {
-  background-color: var(--primary-neon);
-  border: 2px solid var(--primary-neon);
-  color: var(--text-main);
-  border-radius: 50px;
-  font-weight: 600;
-  box-shadow: 0 0 15px rgba(214, 0, 139, 0.4);
-  transition: all 0.3s ease;
-}
-
-.btn-primary:hover {
-  background-color: var(--brand-700);
-  border-color: var(--brand-700);
-  box-shadow: var(--glow-neon-strong);
-  transform: translateY(-2px);
-}
-
-/* ===== CATEGORY CIRCLES ===== */
-.category-circle {
-  border-radius: 50%;
-  overflow: hidden;
-  border: 2px solid var(--primary-neon);
-  box-shadow: 0 0 20px rgba(214, 0, 139, 0.4);
-  transition: all 0.3s ease;
-}
-
-.category-circle:hover {
-  box-shadow: var(--glow-neon-strong);
-  transform: scale(1.05);
-}
-
-/* ===== CARDS ===== */
-.card-dark {
-  background: var(--surface-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-onca);
-  transition: all 0.3s ease;
-}
-
-.card-dark:hover {
-  background: var(--surface-elevated);
-  border-color: var(--border-neon);
-  box-shadow: 0 0 20px rgba(214, 0, 139, 0.2);
-}
-
-/* ===== VIGNETTE EFFECT ===== */
-.vignette::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.6) 100%);
-  pointer-events: none;
-}
-
-/* ===== INPUTS ===== */
-.input-dark {
-  background: rgba(255, 255, 255, 0.12);
-  /* Increased from 0.05 for better visibility */
-  border: 1px solid var(--border-subtle);
-  color: var(--text-main);
-  border-radius: var(--radius-onca);
-}
-
-.input-dark::placeholder {
-  color: rgba(255, 255, 255, 0.5);
-  /* Lighter than before */
-}
-
-.input-dark:focus {
-  outline: none;
-  border-color: var(--primary-neon);
-  box-shadow: 0 0 10px rgba(214, 0, 139, 0.3);
-}
-
-/* ===== SMOOTH TRANSITIONS ===== */
+/* Transição global "blanket" — mantida por enquanto: vários hovers hoje
+   dependem implicitamente dela (transform em group-hover, box-shadow em
+   .card-dark, etc). Será substituída por transições explícitas por
+   componente na Fase 7, quando cada um desses hovers já tiver sido
+   reescrito de propósito. Removê-la agora quebraria efeitos visuais
+   silenciosamente sem erro de build. */
 * {
   transition-property: color, background-color, border-color, transform, box-shadow, opacity;
   transition-duration: 200ms;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===== CAMADA 3: COMPONENTES ===== */
+@layer components {
+  /* Tinta chapada — o acento como massa de cor, não como brilho */
+  .ink-block {
+    background-color: var(--color-accent);
+    color: var(--color-fg-on-accent);
+  }
+
+  .text-accent {
+    color: var(--color-accent);
+  }
+
+  .rule-accent {
+    border-color: var(--color-accent);
+  }
+
+  .glass {
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .surface, .card-dark {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-onca);
+    transition: background-color 300ms ease, border-color 300ms ease, box-shadow 300ms ease;
+  }
+
+  .surface:hover, .card-dark:hover {
+    background: var(--color-surface-raised);
+    border-color: var(--color-border-accent);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-pill);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: transform 250ms cubic-bezier(0.4, 0, 0.2, 1), background-color 250ms ease, border-color 250ms ease;
+  }
+
+  .btn-fill {
+    background-color: var(--color-accent);
+    color: var(--raw-white);
+    border: 1px solid var(--color-accent);
+  }
+
+  .btn-fill:hover {
+    background-color: var(--brand-700);
+    border-color: var(--brand-700);
+    transform: translateY(-2px);
+  }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--color-fg);
+    border: 1px solid var(--color-accent);
+  }
+
+  .btn-outline:hover {
+    background: var(--color-accent);
+    transform: translateY(-2px);
+  }
+
+  .field, .input-dark {
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--color-border);
+    color: var(--color-fg);
+    border-radius: var(--radius-onca);
+  }
+
+  [data-theme="light"] .field, [data-theme="light"] .input-dark {
+    background: var(--color-surface);
+  }
+
+  .field::placeholder, .input-dark::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  [data-theme="light"] .field::placeholder, [data-theme="light"] .input-dark::placeholder {
+    color: var(--color-fg-subtle);
+  }
+
+  .field:focus, .input-dark:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.25);
+  }
+
+  /* Reveal on scroll — ver src/components/motion/Reveal.tsx */
+  .reveal {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 700ms cubic-bezier(0.16, 1, 0.3, 1),
+      transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+
+  .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  .marquee-track {
+    display: flex;
+    width: max-content;
+    animation: marquee 28s linear infinite;
+  }
+}
+
+/* ===== ALIASES DE COMPATIBILIDADE =====
+   Nomes antigos ainda em uso nas páginas não migradas (.card-dark e .input-dark
+   já viraram seletores extras acima). Removidos na Fase 7 assim que
+   `grep -rn "card-dark\|input-dark\|btn-ghost\|glass-light" src` voltar vazio. */
+@layer components {
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-pill);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: transparent;
+    color: var(--color-fg);
+    border: 1px solid var(--color-accent);
+    transition: transform 250ms cubic-bezier(0.4, 0, 0.2, 1), background-color 250ms ease;
+  }
+  .btn-ghost:hover {
+    background: var(--color-accent);
+    transform: translateY(-2px);
+  }
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-pill);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background-color: var(--color-accent);
+    color: var(--raw-white);
+    border: 1px solid var(--color-accent);
+    transition: transform 250ms cubic-bezier(0.4, 0, 0.2, 1), background-color 250ms ease, border-color 250ms ease;
+  }
+  .btn-primary:hover {
+    background-color: var(--brand-700);
+    border-color: var(--brand-700);
+    transform: translateY(-2px);
+  }
+  .glass-light {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  .glow-neon { box-shadow: var(--glow-accent); }
+  .glow-neon-strong { box-shadow: var(--glow-accent-strong); }
+  .text-glow { text-shadow: 0 0 10px rgba(var(--color-accent-rgb), 0.5); }
+  .logo-glow { filter: drop-shadow(0 0 8px rgba(var(--color-accent-rgb), 0.6)); }
+  .category-circle {
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid var(--color-accent);
+    box-shadow: var(--glow-accent);
+  }
+  .category-circle:hover {
+    box-shadow: var(--glow-accent-strong);
+    transform: scale(1.05);
+  }
+  .vignette::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.6) 100%);
+    pointer-events: none;
+  }
+}
+
+/* ===== ANIMAÇÕES ===== */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
 }
 
 /* ===== SCROLLBAR ===== */
@@ -240,7 +357,7 @@ h6 {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg-dark);
+  background: var(--color-bg);
 }
 
 ::-webkit-scrollbar-thumb {
@@ -249,17 +366,76 @@ h6 {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--primary-neon);
+  background: var(--color-accent);
 }
 
-/* ===== SELECTION ===== */
 ::selection {
-  background: rgba(214, 0, 139, 0.3);
-  color: var(--text-main);
+  background: rgba(var(--color-accent-rgb), 0.3);
+  color: var(--color-fg);
 }
 
-/* ===== ADMIN FORM INPUTS ===== */
-/* Classe específica para inputs em páginas de admin com fundo claro */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 10px;
+  transition: background-color 300ms ease;
+}
+
+.custom-scrollbar:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(var(--color-accent-rgb), 0.3);
+}
+
+.custom-scrollbar:hover::-webkit-scrollbar-thumb:hover {
+  background-color: var(--brand-600);
+}
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 300ms ease;
+}
+
+.custom-scrollbar:hover {
+  scrollbar-color: rgba(var(--color-accent-rgb), 0.3) transparent;
+}
+
+/* ===== MOVIMENTO REDUZIDO ===== */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .marquee-track {
+    animation: none !important;
+  }
+}
+
+/* =====================================================================
+ * ADMIN — ESCAPE HATCH, NÃO TOCAR
+ * Mantido fora de @layer e por último no arquivo de propósito: CSS em
+ * @layer perde para !important fora de camada, e é essa ordem que garante
+ * que inputs do admin continuem legíveis (texto escuro em fundo claro)
+ * independentemente do que as camadas acima declararem.
+ * ===================================================================== */
 .admin-form input,
 .admin-form textarea,
 .admin-form select {
@@ -270,44 +446,4 @@ h6 {
 .admin-form input::placeholder,
 .admin-form textarea::placeholder {
   color: #9ca3af !important;
-}
-
-/* ===== CUSTOM SCROLLBAR (HOVER ONLY) ===== */
-/* Hide scrollbar track for cleaner look */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-/* Thumb hidden by default (transparent) */
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: transparent;
-  border-radius: 10px;
-  transition: background-color 0.3s ease;
-}
-
-/* Thumb visible on hover */
-.custom-scrollbar:hover::-webkit-scrollbar-thumb {
-  background-color: rgba(214, 0, 139, 0.3);
-  /* Brand color transparent */
-}
-
-.custom-scrollbar:hover::-webkit-scrollbar-thumb:hover {
-  background-color: var(--brand-600);
-  /* Full brand color on thumb hover */
-}
-
-/* Firefox support */
-.custom-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: transparent transparent;
-  transition: scrollbar-color 0.3s ease;
-}
-
-.custom-scrollbar:hover {
-  scrollbar-color: rgba(214, 0, 139, 0.3) transparent;
 }

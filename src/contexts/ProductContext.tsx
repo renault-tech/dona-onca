@@ -2,58 +2,20 @@
 
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import {
+    type Product,
+    type AboutContent,
+    type HomeBanner,
+    categories,
+    defaultHomeBanners,
+    mapRowToProduct,
+} from '@/lib/catalog';
 
-export interface Product {
-    id: number;
-    name: string;
-    price: number;
-    originalPrice?: number;
-    description: string;
-    category: 'Lingerie' | 'Pijamas' | 'Praia/Piscina' | 'Sexshop';
-    sizes: string[];
-    colors: string[];
-    hasSize: boolean;
-    hasColor: boolean;
-    images: string[];
-    stock: number;
-    lowStockAlert: number;
-    active: boolean;
-    createdAt: Date;
-}
-
-export interface AboutContent {
-    hero: {
-        title: string;
-        tagline: string;
-        image: string;
-        alignment: 'object-center' | 'object-top' | 'object-bottom' | 'object-left' | 'object-right' | 'object-contain';
-    };
-    story: string;
-    values: {
-        icon: string;
-        image?: string;
-        title: string;
-        description: string;
-    }[];
-    team: {
-        name: string;
-        role: string;
-        image: string;
-    }[];
-    contact: {
-        email: string;
-        whatsapp: string;
-        instagram: string;
-    };
-}
-
-export interface HomeBanner {
-    id: string;
-    name: string;
-    image: string;
-    link: string;
-    order: number;
-}
+// Re-exportados para não quebrar os ~20 arquivos que importam tipos e
+// constantes de catálogo a partir deste context. A fonte da verdade
+// agora é @/lib/catalog (server-safe); este arquivo cuida só do estado.
+export type { Product, AboutContent, HomeBanner };
+export { categories };
 
 interface ProductContextType {
     products: Product[];
@@ -71,14 +33,6 @@ interface ProductContextType {
     homeBanners: HomeBanner[];
     updateHomeBanners: (banners: HomeBanner[]) => Promise<void>;
 }
-
-export const categories = ['Lingerie', 'Pijamas', 'Praia/Piscina', 'Sexshop'];
-
-const defaultHomeBanners: HomeBanner[] = [
-    { id: '1', name: 'Lingerie', image: '', link: '/produtos?categoria=Lingerie', order: 1 },
-    { id: '2', name: 'Toys', image: '', link: '/produtos?categoria=Sexshop', order: 2 },
-    { id: '3', name: 'Kits & Óleos', image: '', link: '/produtos?categoria=Sexshop', order: 3 },
-];
 
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
 
@@ -126,23 +80,7 @@ export function ProductProvider({ children }: { children: ReactNode }) {
             }
 
             if (data) {
-                const formattedProducts: Product[] = data.map((p: any) => ({
-                    id: p.id,
-                    name: p.name,
-                    price: Number(p.price),
-                    originalPrice: p.original_price ? Number(p.original_price) : undefined,
-                    description: p.description,
-                    category: p.category,
-                    sizes: p.sizes || [],
-                    colors: p.colors || [],
-                    hasSize: p.has_size,
-                    hasColor: p.has_color,
-                    images: p.images || [],
-                    stock: p.stock,
-                    lowStockAlert: p.low_stock_alert,
-                    active: p.active,
-                    createdAt: new Date(p.created_at)
-                }));
+                const formattedProducts: Product[] = data.map(mapRowToProduct);
                 setProducts(formattedProducts);
                 console.log('Products loaded:', formattedProducts.length);
             }

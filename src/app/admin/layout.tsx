@@ -6,7 +6,7 @@ import { ReactNode } from 'react';
 export default function AdminLayout({ children }: { children: ReactNode }) {
     return (
         <AdminGuard>
-            <div className="text-gray-900 antialiased">
+            <div data-theme="light" className="min-h-screen bg-bg text-fg antialiased">
                 {children}
             </div>
         </AdminGuard>
