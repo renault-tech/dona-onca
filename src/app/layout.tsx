@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Providers from "@/components/Providers";
 import Footer from "@/components/Footer";
+import JsonLd from "@/components/seo/JsonLd";
 
 const fraunces = Fraunces({
   variable: "--font-fraunces",
@@ -52,6 +53,28 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" data-theme="dark">
       <body className={`${fraunces.variable} ${archivo.variable} font-sans antialiased min-h-screen`}>
+        <JsonLd
+          data={{
+            '@context': 'https://schema.org',
+            '@type': 'Organization',
+            name: 'Dona Onça',
+            url: siteUrl,
+            logo: `${siteUrl}/logo.png`,
+          }}
+        />
+        <JsonLd
+          data={{
+            '@context': 'https://schema.org',
+            '@type': 'WebSite',
+            name: 'Dona Onça',
+            url: siteUrl,
+            potentialAction: {
+              '@type': 'SearchAction',
+              target: `${siteUrl}/produtos?q={search_term_string}`,
+              'query-input': 'required name=search_term_string',
+            },
+          }}
+        />
         <Providers>
           <Navbar />
           <main>{children}</main>
