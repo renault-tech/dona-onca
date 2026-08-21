@@ -48,10 +48,12 @@ export default function TeamPage() {
         try {
             setLoading(true);
 
-            // 1. Fetch all profiles
+            // 1. Fetch all profiles (só as colunas usadas nesta tela -- CPF, endereço e
+            // telefone não têm por que trafegar aqui). A listagem exibida na tela é
+            // filtrada depois em filteredUsers; isto aqui é só o universo de busca.
             const { data: profiles, error } = await supabase
                 .from('profiles')
-                .select('*')
+                .select('id, email, full_name, is_admin')
                 .order('full_name');
 
             if (error) throw error;
@@ -225,10 +227,19 @@ export default function TeamPage() {
         }
     };
 
-    const filteredUsers = users.filter(u =>
-        u.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        u.email.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Sem busca: só quem já é equipe de verdade (admin do sistema ou visível no site) --
+    // não lista todo cliente cadastrado. Com busca: qualquer cliente, para promover a
+    // admin ou adicionar à equipe.
+    const filteredUsers = useMemo(() => {
+        const term = searchTerm.trim().toLowerCase();
+        if (term) {
+            return users.filter(u =>
+                u.full_name.toLowerCase().includes(term) ||
+                u.email.toLowerCase().includes(term)
+            );
+        }
+        return users.filter(u => u.is_admin || u.is_visible);
+    }, [users, searchTerm]);
 
     return (
         <div className="min-h-screen bg-gray-900 pb-12">
@@ -243,7 +254,7 @@ export default function TeamPage() {
                             </Link>
                             <div>
                                 <h1 className="text-2xl font-bold text-white">Gestão de Equipe</h1>
-                                <p className="text-sm text-gray-400">Administradores e Membros Visíveis</p>
+                                <p className="text-sm text-gray-400">Administradores e membros visíveis no site. Um cadastro novo não aparece aqui sozinho.</p>
                             </div>
                         </div>
                     </div>
@@ -252,7 +263,7 @@ export default function TeamPage() {
                     <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center">
                         <input
                             type="text"
-                            placeholder="Buscar membros..."
+                            placeholder="Buscar qualquer cliente cadastrado (para tornar admin ou adicionar à equipe)..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="bg-gray-900 px-4 py-2.5 pl-4 text-sm w-full max-w-sm rounded-xl border border-gray-600 text-white focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
@@ -352,6 +363,15 @@ export default function TeamPage() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-700">
+                            {filteredUsers.length === 0 && (
+                                <tr>
+                                    <td colSpan={4} className="px-6 py-10 text-center text-sm text-gray-400">
+                                        {searchTerm
+                                            ? 'Nenhum cliente encontrado com esse termo.'
+                                            : 'Ninguém é admin ou membro visível ainda. Use a busca acima para encontrar um cliente cadastrado e adicioná-lo.'}
+                                    </td>
+                                </tr>
+                            )}
                             {filteredUsers.map((user) => (
                                 <tr
                                     key={user.email || user.full_name}
