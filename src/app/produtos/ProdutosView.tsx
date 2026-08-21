@@ -117,10 +117,7 @@ function ProductsContent() {
                         <div className="sticky top-24 space-y-8">
                             {/* Categories */}
                             <div>
-                                <h3
-                                    className="mb-4 text-sm font-bold uppercase tracking-wider text-white"
-                                    style={{ fontFamily: 'var(--font-cinzel), Cinzel, serif' }}
-                                >
+                                <h3 className="font-display mb-4 text-sm uppercase tracking-wider text-fg">
                                     Categorias
                                 </h3>
                                 <div className="space-y-2">
@@ -145,10 +142,7 @@ function ProductsContent() {
                             {/* Sizes */}
                             {allSizes.length > 0 && (
                                 <div>
-                                    <h3
-                                        className="mb-4 text-sm font-bold uppercase tracking-wider text-white"
-                                        style={{ fontFamily: 'var(--font-cinzel), Cinzel, serif' }}
-                                    >
+                                    <h3 className="font-display mb-4 text-sm uppercase tracking-wider text-fg">
                                         Tamanhos
                                     </h3>
                                     <div className="flex flex-wrap gap-2">
@@ -168,10 +162,7 @@ function ProductsContent() {
                             {/* Colors */}
                             {allColors.length > 0 && (
                                 <div>
-                                    <h3
-                                        className="mb-4 text-sm font-bold uppercase tracking-wider text-white"
-                                        style={{ fontFamily: 'var(--font-cinzel), Cinzel, serif' }}
-                                    >
+                                    <h3 className="font-display mb-4 text-sm uppercase tracking-wider text-fg">
                                         Cores
                                     </h3>
                                     <div className="space-y-2">

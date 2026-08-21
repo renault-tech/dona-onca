@@ -42,7 +42,9 @@
   /* Texto */
   --color-fg: var(--raw-white);
   --color-fg-muted: rgba(255, 255, 255, 0.68);
-  --color-fg-subtle: rgba(255, 255, 255, 0.45);
+  /* 0.45 media ~4.4:1 sobre --color-bg (abaixo de 4.5:1 AA para texto
+     pequeno); 0.55 sobe para ~5.6:1 e passa com folga. */
+  --color-fg-subtle: rgba(255, 255, 255, 0.55);
   --color-fg-on-accent: var(--raw-black);
 
   /* Bordas */
@@ -154,12 +156,16 @@ body {
   }
 }
 
-/* Transição global "blanket" — mantida por enquanto: vários hovers hoje
-   dependem implicitamente dela (transform em group-hover, box-shadow em
-   .card-dark, etc). Será substituída por transições explícitas por
-   componente na Fase 7, quando cada um desses hovers já tiver sido
-   reescrito de propósito. Removê-la agora quebraria efeitos visuais
-   silenciosamente sem erro de build. */
+/* Transição global "blanket" — decisão final: mantida, e não por preguiça.
+   O redesign cobriu a vitrine (home, catálogo, produto, sacola, sobre, casca)
+   e todo hover novo nesses componentes já usa `transition-*` explícito do
+   Tailwind. Mas /admin, /checkout e as páginas de /conta continuam fora do
+   escopo deste redesign e ainda dependem desta regra em silêncio para
+   dezenas de hovers nunca auditados aqui. Removê-la exigiria varrer
+   visualmente cada uma dessas páginas -- risco que não vale o ganho
+   (a regra não tem custo de performance real neste tamanho de app). Fica
+   registrado como item de limpeza futura no relatório de auditoria, não
+   como algo esquecido. */
 * {
   transition-property: color, background-color, border-color, transform, box-shadow, opacity;
   transition-duration: 200ms;
@@ -280,73 +286,19 @@ body {
   }
 }
 
-/* ===== ALIASES DE COMPATIBILIDADE =====
-   Nomes antigos ainda em uso nas páginas não migradas (.card-dark e .input-dark
-   já viraram seletores extras acima). Removidos na Fase 7 assim que
-   `grep -rn "card-dark\|input-dark\|btn-ghost\|glass-light" src` voltar vazio. */
+/* ===== EFEITOS PONTUAIS =====
+   O conceito "tinta sobre pele" reserva o glow para poucos lugares
+   (logo, um chip de filtro ativo) -- não é mais o vocabulário padrão de
+   botão/card como na versão anterior, mas onde ele aparece é proposital. */
 @layer components {
-  .btn-ghost {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--radius-pill);
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    background: transparent;
-    color: var(--color-fg);
-    border: 1px solid var(--color-accent);
-    transition: transform 250ms cubic-bezier(0.4, 0, 0.2, 1), background-color 250ms ease;
-  }
-  .btn-ghost:hover {
-    background: var(--color-accent);
-    transform: translateY(-2px);
-  }
-  .btn-primary {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--radius-pill);
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    background-color: var(--color-accent);
-    color: var(--raw-white);
-    border: 1px solid var(--color-accent);
-    transition: transform 250ms cubic-bezier(0.4, 0, 0.2, 1), background-color 250ms ease, border-color 250ms ease;
-  }
-  .btn-primary:hover {
-    background-color: var(--brand-700);
-    border-color: var(--brand-700);
-    transform: translateY(-2px);
-  }
-  .glass-light {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-  }
   .glow-neon { box-shadow: var(--glow-accent); }
   .glow-neon-strong { box-shadow: var(--glow-accent-strong); }
-  .text-glow { text-shadow: 0 0 10px rgba(var(--color-accent-rgb), 0.5); }
   .logo-glow { filter: drop-shadow(0 0 8px rgba(var(--color-accent-rgb), 0.6)); }
-  .category-circle {
-    border-radius: 50%;
-    overflow: hidden;
-    border: 2px solid var(--color-accent);
-    box-shadow: var(--glow-accent);
-  }
-  .category-circle:hover {
-    box-shadow: var(--glow-accent-strong);
-    transform: scale(1.05);
-  }
-  .vignette::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.6) 100%);
-    pointer-events: none;
-  }
 }
+
+/* .card-dark / .input-dark (definidos acima, junto de .surface/.field) seguem
+   em uso pelo /admin, que não faz parte deste redesign -- não são mais
+   "aliases transitórios", são o vocabulário de componente do admin. */
 
 /* ===== ANIMAÇÕES ===== */
 @keyframes marquee {
@@ -375,6 +327,15 @@ body {
 ::selection {
   background: rgba(var(--color-accent-rgb), 0.3);
   color: var(--color-fg);
+}
+
+/* ===== FOCO VISÍVEL ===== */
+/* Anel de foco consistente com a marca em vez do azul padrão do navegador,
+   mantendo contraste suficiente sobre o fundo escuro e sobre o admin claro. */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
 .custom-scrollbar::-webkit-scrollbar {

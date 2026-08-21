@@ -31,7 +31,7 @@ export default function ContatoPage() {
                 <div className="mx-auto max-w-2xl px-4 text-center">
                     <div className="rounded-2xl bg-gradient-to-br from-[#1a0510] to-[#0d0308] p-12 border border-[#d6008b]/30">
                         <div className="text-6xl mb-6">✉️</div>
-                        <h1 className="text-3xl font-bold text-white mb-4" style={{ fontFamily: 'var(--font-cinzel)' }}>
+                        <h1 className="text-3xl font-bold text-white mb-4">
                             Mensagem Enviada!
                         </h1>
                         <p className="text-white/60 mb-8">
@@ -65,7 +65,6 @@ export default function ContatoPage() {
                 <div className="text-center mb-12">
                     <h1
                         className="text-4xl font-bold text-white mb-4"
-                        style={{ fontFamily: 'var(--font-cinzel)' }}
                     >
                         Fale Conosco
                     </h1>

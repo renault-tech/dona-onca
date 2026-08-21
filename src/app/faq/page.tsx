@@ -100,7 +100,6 @@ export default function FAQPage() {
                 <div className="text-center mb-12">
                     <h1
                         className="text-4xl font-bold text-white mb-4"
-                        style={{ fontFamily: 'var(--font-cinzel)' }}
                     >
                         Central de Ajuda
                     </h1>
