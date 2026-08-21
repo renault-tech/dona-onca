@@ -24,12 +24,17 @@ interface CartContextType {
     subtotal: number;
     shipping: number;
     total: number;
+    /** Mini-carrinho (drawer). Aberto automaticamente ao adicionar um item. */
+    isDrawerOpen: boolean;
+    openDrawer: () => void;
+    closeDrawer: () => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
     const [items, setItems] = useState<CartItem[]>([]);
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const { user } = useAuth();
 
     // Generate storage key based on user ID
@@ -74,6 +79,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             }
             return [...prev, { ...item, id: Date.now() }];
         });
+        setIsDrawerOpen(true);
     };
 
     const updateQuantity = (id: number, quantity: number) => {
@@ -109,6 +115,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
                 subtotal,
                 shipping,
                 total,
+                isDrawerOpen,
+                openDrawer: () => setIsDrawerOpen(true),
+                closeDrawer: () => setIsDrawerOpen(false),
             }}
         >
             {children}

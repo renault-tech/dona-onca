@@ -2,69 +2,113 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { categories } from '@/contexts/ProductContext';
+import MiniCartDrawer from '@/components/cart/MiniCartDrawer';
+import SearchDialog from '@/components/search/SearchDialog';
+
+const navLinks = [
+    { href: '/', label: 'Home' },
+    { href: '/produtos', label: 'Produtos' },
+    { href: '/novidades', label: 'Novidades' },
+    { href: '/sobre', label: 'Sobre' },
+];
 
 export default function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [showCategories, setShowCategories] = useState(false);
-    const { itemCount } = useCart();
+    const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const { itemCount, openDrawer } = useCart();
     const { user, isAdmin } = useAuth();
+    const categoriesRef = useRef<HTMLDivElement>(null);
+
+    // Dropdown de categorias acessível: fecha ao clicar fora ou pressionar Escape.
+    useEffect(() => {
+        if (!showCategories) return;
+        const onClickOutside = (e: MouseEvent) => {
+            if (categoriesRef.current && !categoriesRef.current.contains(e.target as Node)) {
+                setShowCategories(false);
+            }
+        };
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setShowCategories(false);
+        };
+        document.addEventListener('mousedown', onClickOutside);
+        window.addEventListener('keydown', onKey);
+        return () => {
+            document.removeEventListener('mousedown', onClickOutside);
+            window.removeEventListener('keydown', onKey);
+        };
+    }, [showCategories]);
+
+    // Trava o scroll do body enquanto o menu mobile está aberto.
+    useEffect(() => {
+        document.body.style.overflow = isMenuOpen ? 'hidden' : '';
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [isMenuOpen]);
 
     return (
-        <header className="sticky top-0 z-50 glass border-b border-white/10">
+        <header className="sticky top-0 z-50 glass border-b border-border">
             <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 lg:px-8">
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-3">
                     <Image
                         src="/logo.png"
                         alt="Dona Onça"
-                        width={56}
-                        height={56}
-                        className="h-14 w-14 object-contain logo-glow"
+                        width={48}
+                        height={48}
+                        className="h-11 w-11 object-contain logo-glow"
                         priority
                     />
-                    <span className="hidden text-xl font-semibold text-white sm:block" style={{ fontFamily: 'var(--font-cinzel), Cinzel, serif' }}>
-                        Dona Onça
-                    </span>
+                    <span className="hidden font-display text-xl italic text-fg sm:block">Dona Onça</span>
                 </Link>
 
                 {/* Desktop Navigation */}
                 <div className="hidden items-center gap-8 lg:flex">
-                    <Link
-                        href="/"
-                        className="text-sm font-medium text-white/80 hover:text-[#d6008b] transition-colors"
-                    >
-                        Home
-                    </Link>
-                    <Link
-                        href="/produtos"
-                        className="text-sm font-medium text-white/80 hover:text-[#d6008b] transition-colors"
-                    >
-                        Produtos
-                    </Link>
+                    {navLinks.map((link) => (
+                        <Link
+                            key={link.href}
+                            href={link.href}
+                            className="group relative py-1 text-xs font-medium uppercase tracking-[0.15em] text-fg-muted hover:text-fg transition-colors"
+                        >
+                            {link.label}
+                            <span className="absolute -bottom-0.5 left-0 h-px w-0 bg-accent transition-all duration-300 group-hover:w-full" />
+                        </Link>
+                    ))}
 
                     {/* Categories Dropdown */}
-                    <div className="relative">
+                    <div className="relative" ref={categoriesRef}>
                         <button
-                            onClick={() => setShowCategories(!showCategories)}
-                            onBlur={() => setTimeout(() => setShowCategories(false), 150)}
-                            className="flex items-center gap-1 text-sm font-medium text-white/80 hover:text-[#d6008b] transition-colors"
+                            onClick={() => setShowCategories((v) => !v)}
+                            aria-haspopup="menu"
+                            aria-expanded={showCategories}
+                            className="flex items-center gap-1 text-xs font-medium uppercase tracking-[0.15em] text-fg-muted hover:text-fg transition-colors"
                         >
                             Categorias
-                            <svg className={`h-4 w-4 transition-transform ${showCategories ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg
+                                className={`h-3.5 w-3.5 transition-transform ${showCategories ? 'rotate-180' : ''}`}
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
                         {showCategories && (
-                            <div className="absolute left-0 top-full mt-2 w-48 rounded-xl glass border border-white/10 py-2 shadow-lg">
+                            <div
+                                role="menu"
+                                className="absolute left-0 top-full mt-3 w-48 rounded-xl glass border border-border py-2 shadow-lg"
+                            >
                                 {categories.map((cat) => (
                                     <Link
                                         key={cat}
+                                        role="menuitem"
                                         href={`/produtos?categoria=${encodeURIComponent(cat)}`}
-                                        className="block px-4 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-[#d6008b] transition-colors"
+                                        className="block px-4 py-2 text-sm text-fg-muted hover:bg-surface hover:text-accent transition-colors"
                                         onClick={() => setShowCategories(false)}
                                     >
                                         {cat}
@@ -74,22 +118,10 @@ export default function Navbar() {
                         )}
                     </div>
 
-                    <Link
-                        href="/novidades"
-                        className="text-sm font-medium text-white/80 hover:text-[#d6008b] transition-colors"
-                    >
-                        Novidades
-                    </Link>
-                    <Link
-                        href="/sobre"
-                        className="text-sm font-medium text-white/80 hover:text-[#d6008b] transition-colors"
-                    >
-                        Sobre
-                    </Link>
                     {isAdmin && (
                         <Link
                             href="/admin"
-                            className="rounded-full border border-[#d6008b] bg-transparent px-4 py-1.5 text-sm font-medium text-white hover:bg-[#d6008b] transition-all glow-neon"
+                            className="rounded-full border border-accent bg-transparent px-4 py-1.5 text-xs uppercase tracking-[0.15em] text-fg hover:bg-accent transition-all"
                         >
                             Admin
                         </Link>
@@ -97,40 +129,23 @@ export default function Navbar() {
                 </div>
 
                 {/* Icons */}
-                <div className="flex items-center gap-3">
-                    {/* Search */}
-                    <Link
-                        href="/produtos"
-                        className="rounded-full p-2 text-white/80 hover:text-[#d6008b] hover:bg-white/5 transition-colors"
+                <div className="flex items-center gap-1">
+                    <button
+                        onClick={() => setIsSearchOpen(true)}
+                        className="rounded-full p-2 text-fg-muted hover:text-accent hover:bg-surface transition-colors"
                         aria-label="Buscar"
                     >
-                        <svg
-                            className="h-5 w-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                            />
+                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
-                    </Link>
+                    </button>
 
-                    {/* Profile */}
                     <Link
-                        href={user ? "/minha-conta" : "/conta"}
-                        className="rounded-full p-2 text-white/80 hover:text-[#d6008b] hover:bg-white/5 transition-colors"
+                        href={user ? '/minha-conta' : '/conta'}
+                        className="rounded-full p-2 text-fg-muted hover:text-accent hover:bg-surface transition-colors"
                         aria-label="Minha conta"
                     >
-                        <svg
-                            className="h-5 w-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
+                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
@@ -140,18 +155,12 @@ export default function Navbar() {
                         </svg>
                     </Link>
 
-                    {/* Cart */}
-                    <Link
-                        href="/sacola"
-                        className="relative rounded-full p-2 text-white/80 hover:text-[#d6008b] hover:bg-white/5 transition-colors"
-                        aria-label="Sacola de compras"
+                    <button
+                        onClick={openDrawer}
+                        className="relative rounded-full p-2 text-fg-muted hover:text-accent hover:bg-surface transition-colors"
+                        aria-label="Abrir sacola de compras"
                     >
-                        <svg
-                            className="h-5 w-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
+                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
@@ -159,40 +168,25 @@ export default function Navbar() {
                                 d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
                             />
                         </svg>
-                        {/* Cart badge */}
                         {itemCount > 0 && (
-                            <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#d6008b] text-xs font-bold text-white glow-neon">
+                            <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-xs font-bold text-white">
                                 {itemCount > 9 ? '9+' : itemCount}
                             </span>
                         )}
-                    </Link>
+                    </button>
 
                     {/* Mobile menu button */}
                     <button
-                        onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        className="rounded-full p-2 text-white/80 hover:text-[#d6008b] hover:bg-white/5 transition-colors lg:hidden"
-                        aria-label="Menu"
+                        onClick={() => setIsMenuOpen((v) => !v)}
+                        className="rounded-full p-2 text-fg-muted hover:text-accent hover:bg-surface transition-colors lg:hidden"
+                        aria-label={isMenuOpen ? 'Fechar menu' : 'Abrir menu'}
+                        aria-expanded={isMenuOpen}
                     >
-                        <svg
-                            className="h-5 w-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
+                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             {isMenuOpen ? (
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M6 18L18 6M6 6l12 12"
-                                />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             ) : (
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M4 6h16M4 12h16M4 18h16"
-                                />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                             )}
                         </svg>
                     </button>
@@ -201,53 +195,35 @@ export default function Navbar() {
 
             {/* Mobile Menu */}
             {isMenuOpen && (
-                <div className="border-t border-white/10 glass px-4 py-4 lg:hidden">
-                    <div className="flex flex-col gap-3">
-                        <Link
-                            href="/"
-                            className="rounded-lg px-3 py-2 text-sm font-medium text-white/80 hover:bg-white/10 hover:text-[#d6008b] transition-colors"
-                            onClick={() => setIsMenuOpen(false)}
-                        >
-                            Home
-                        </Link>
-                        <Link
-                            href="/produtos"
-                            className="rounded-lg px-3 py-2 text-sm font-medium text-white/80 hover:bg-white/10 hover:text-[#d6008b] transition-colors"
-                            onClick={() => setIsMenuOpen(false)}
-                        >
-                            Produtos
-                        </Link>
-                        <div className="border-t border-white/10 py-2">
-                            <p className="mb-2 px-3 text-xs font-semibold uppercase text-white/50">Categorias</p>
+                <div className="border-t border-border glass px-4 py-4 lg:hidden">
+                    <div className="flex flex-col gap-1">
+                        {navLinks.map((link) => (
+                            <Link
+                                key={link.href}
+                                href={link.href}
+                                className="rounded-lg px-3 py-2.5 text-sm font-medium uppercase tracking-wide text-fg-muted hover:bg-surface hover:text-accent transition-colors"
+                                onClick={() => setIsMenuOpen(false)}
+                            >
+                                {link.label}
+                            </Link>
+                        ))}
+                        <div className="border-t border-border py-2 mt-1">
+                            <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-fg-subtle">Categorias</p>
                             {categories.map((cat) => (
                                 <Link
                                     key={cat}
                                     href={`/produtos?categoria=${encodeURIComponent(cat)}`}
-                                    className="block rounded-lg px-3 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-[#d6008b] transition-colors"
+                                    className="block rounded-lg px-3 py-2 text-sm text-fg-muted hover:bg-surface hover:text-accent transition-colors"
                                     onClick={() => setIsMenuOpen(false)}
                                 >
                                     {cat}
                                 </Link>
                             ))}
                         </div>
-                        <Link
-                            href="/novidades"
-                            className="rounded-lg px-3 py-2 text-sm font-medium text-white/80 hover:bg-white/10 hover:text-[#d6008b] transition-colors"
-                            onClick={() => setIsMenuOpen(false)}
-                        >
-                            Novidades
-                        </Link>
-                        <Link
-                            href="/sobre"
-                            className="rounded-lg px-3 py-2 text-sm font-medium text-white/80 hover:bg-white/10 hover:text-[#d6008b] transition-colors"
-                            onClick={() => setIsMenuOpen(false)}
-                        >
-                            Sobre
-                        </Link>
                         {isAdmin && (
                             <Link
                                 href="/admin"
-                                className="mt-2 rounded-full border border-[#d6008b] bg-transparent px-3 py-2 text-center text-sm font-medium text-white hover:bg-[#d6008b] transition-all"
+                                className="mt-2 rounded-full border border-accent bg-transparent px-3 py-2 text-center text-sm font-medium text-fg hover:bg-accent transition-all"
                                 onClick={() => setIsMenuOpen(false)}
                             >
                                 Admin
@@ -256,6 +232,9 @@ export default function Navbar() {
                     </div>
                 </div>
             )}
+
+            <SearchDialog open={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+            <MiniCartDrawer />
         </header>
     );
 }

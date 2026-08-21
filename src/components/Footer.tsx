@@ -86,7 +86,7 @@ export default function Footer() {
     };
 
     return (
-        <footer className="relative border-t border-[#d6008b]/30 bg-black py-12 text-white/60">
+        <footer className="relative border-t border-border bg-black py-14 text-fg-muted">
             {/* Glow rosa no topo */}
             <div
                 className="absolute top-0 left-0 right-0 h-32 pointer-events-none"
@@ -96,7 +96,7 @@ export default function Footer() {
             />
 
             <div className="relative z-10 mx-auto max-w-7xl px-4">
-                <div className="grid gap-8 md:grid-cols-4">
+                <div className="grid gap-10 md:grid-cols-4">
                     {/* Logo e slogan */}
                     <div>
                         <div className="flex items-center gap-3 mb-3">
@@ -109,60 +109,46 @@ export default function Footer() {
                                     style={{ filter: 'drop-shadow(0 0 8px rgba(214, 0, 139, 0.5))' }}
                                 />
                             </div>
-                            <span
-                                className="text-lg font-semibold text-white"
-                                style={{ fontFamily: 'var(--font-cinzel), Cinzel, serif' }}
-                            >
-                                Dona Onça
-                            </span>
+                            <span className="font-display text-xl italic text-fg">Dona Onça</span>
                         </div>
-                        <p className="text-sm uppercase tracking-wider text-white/50">
-                            A sua nova experiência de luxo.
+                        <p className="text-xs uppercase tracking-[0.2em] text-fg-subtle">
+                            Sensualidade em cada detalhe
                         </p>
                     </div>
 
                     {/* Navegação */}
                     <div>
-                        <h4
-                            className="mb-4 font-semibold text-white"
-                            style={{ fontFamily: 'var(--font-cinzel), Cinzel, serif' }}
-                        >
+                        <h4 className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-fg">
                             Navegação
                         </h4>
                         <ul className="space-y-2 text-sm">
-                            <li><Link href="/produtos?categoria=Lingerie" className="hover:text-[#d6008b] transition-colors">Lingeries</Link></li>
-                            <li><Link href="/produtos?categoria=Sexshop" className="hover:text-[#d6008b] transition-colors">Toys</Link></li>
-                            <li><Link href="/produtos" className="hover:text-[#d6008b] transition-colors">Todos os Produtos</Link></li>
+                            <li><Link href="/produtos?categoria=Lingerie" className="hover:text-accent transition-colors">Lingeries</Link></li>
+                            <li><Link href="/produtos?categoria=Sexshop" className="hover:text-accent transition-colors">Toys</Link></li>
+                            <li><Link href="/produtos" className="hover:text-accent transition-colors">Todos os Produtos</Link></li>
                         </ul>
                     </div>
 
                     {/* Ajuda */}
                     <div>
-                        <h4
-                            className="mb-4 font-semibold text-white"
-                            style={{ fontFamily: 'var(--font-cinzel), Cinzel, serif' }}
-                        >
+                        <h4 className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-fg">
                             Ajuda
                         </h4>
                         <ul className="space-y-2 text-sm">
                             {settings.help_contact_enabled && (
-                                <li><Link href="/contato" className="hover:text-[#d6008b] transition-colors">Contato</Link></li>
+                                <li><Link href="/contato" className="hover:text-accent transition-colors">Contato</Link></li>
                             )}
                             {settings.help_faq_enabled && (
-                                <li><Link href="/faq" className="hover:text-[#d6008b] transition-colors">Central de Ajuda</Link></li>
+                                <li><Link href="/faq" className="hover:text-accent transition-colors">Central de Ajuda</Link></li>
                             )}
                             {settings.help_terms_enabled && (
-                                <li><Link href="/termos" className="hover:text-[#d6008b] transition-colors">Termos de Uso</Link></li>
+                                <li><Link href="/termos" className="hover:text-accent transition-colors">Termos de Uso</Link></li>
                             )}
                         </ul>
                     </div>
 
                     {/* Social */}
                     <div>
-                        <h4
-                            className="mb-4 font-semibold text-white"
-                            style={{ fontFamily: 'var(--font-cinzel), Cinzel, serif' }}
-                        >
+                        <h4 className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-fg">
                             Social
                         </h4>
                         <div className="flex gap-3">
@@ -172,7 +158,7 @@ export default function Footer() {
                                     href={settings.facebook_url || '#'}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex h-9 w-9 items-center justify-center rounded-full border border-[#d6008b] text-[#d6008b] hover:bg-[#d6008b] hover:text-white transition-all"
+                                    className="flex h-9 w-9 items-center justify-center rounded-full border border-accent text-accent hover:bg-accent hover:text-white transition-all"
                                     aria-label="Facebook"
                                 >
                                     <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
@@ -186,7 +172,7 @@ export default function Footer() {
                                     href={settings.twitter_url || '#'}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex h-9 w-9 items-center justify-center rounded-full border border-[#d6008b] text-[#d6008b] hover:bg-[#d6008b] hover:text-white transition-all"
+                                    className="flex h-9 w-9 items-center justify-center rounded-full border border-accent text-accent hover:bg-accent hover:text-white transition-all"
                                     aria-label="Twitter"
                                 >
                                     <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
@@ -200,7 +186,7 @@ export default function Footer() {
                                     href={getInstagramUrl()}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex h-9 w-9 items-center justify-center rounded-full border border-[#d6008b] text-[#d6008b] hover:bg-[#d6008b] hover:text-white transition-all"
+                                    className="flex h-9 w-9 items-center justify-center rounded-full border border-accent text-accent hover:bg-accent hover:text-white transition-all"
                                     aria-label="Instagram"
                                 >
                                     <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
@@ -214,7 +200,7 @@ export default function Footer() {
                                     href={settings.youtube_url || '#'}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex h-9 w-9 items-center justify-center rounded-full border border-[#d6008b] text-[#d6008b] hover:bg-[#d6008b] hover:text-white transition-all"
+                                    className="flex h-9 w-9 items-center justify-center rounded-full border border-accent text-accent hover:bg-accent hover:text-white transition-all"
                                     aria-label="YouTube"
                                 >
                                     <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
@@ -228,7 +214,7 @@ export default function Footer() {
                                     href={getWhatsAppUrl()}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex h-9 w-9 items-center justify-center rounded-full border border-[#d6008b] text-[#d6008b] hover:bg-[#d6008b] hover:text-white transition-all"
+                                    className="flex h-9 w-9 items-center justify-center rounded-full border border-accent text-accent hover:bg-accent hover:text-white transition-all"
                                     aria-label="WhatsApp"
                                 >
                                     <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
@@ -240,9 +226,10 @@ export default function Footer() {
                     </div>
                 </div>
 
-                {/* Copyright */}
-                <div className="mt-12 border-t border-white/10 pt-8 text-center text-sm text-white/40">
-                    © Copyright 2026. All rights reserved.
+                {/* Copyright + discrição */}
+                <div className="mt-12 flex flex-col items-center gap-2 border-t border-border pt-8 text-center text-xs text-fg-subtle">
+                    <p>Entrega discreta · fatura com nome neutro · compra sigilosa</p>
+                    <p>© {new Date().getFullYear()} Dona Onça. Todos os direitos reservados.</p>
                 </div>
             </div>
         </footer>

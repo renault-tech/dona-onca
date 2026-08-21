@@ -13,6 +13,7 @@ function ProductsContent() {
     const { products, loading } = useProducts();
     const searchParams = useSearchParams();
     const categoryParam = searchParams.get('categoria');
+    const queryParam = searchParams.get('q')?.trim().toLowerCase() ?? '';
 
     const [selectedCategory, setSelectedCategory] = useState('Todos');
     const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
@@ -38,7 +39,8 @@ function ProductsContent() {
             const categoryMatch = selectedCategory === 'Todos' || p.category === selectedCategory;
             const sizeMatch = selectedSizes.length === 0 || p.sizes.some(s => selectedSizes.includes(s));
             const colorMatch = selectedColors.length === 0 || p.colors.some(c => selectedColors.includes(c));
-            return isActive && categoryMatch && sizeMatch && colorMatch;
+            const queryMatch = !queryParam || p.name.toLowerCase().includes(queryParam) || p.category.toLowerCase().includes(queryParam);
+            return isActive && categoryMatch && sizeMatch && colorMatch && queryMatch;
         })
         .sort((a, b) => {
             switch (sortBy) {
