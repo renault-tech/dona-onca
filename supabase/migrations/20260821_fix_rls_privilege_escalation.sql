@@ -1,9 +1,22 @@
 -- Corrige três achados críticos de RLS confirmados em produção via auditoria
 -- (consulta a pg_policies do schema public), executados manualmente no SQL
--- Editor do Supabase e depois versionados aqui para histórico.
+-- Editor do Supabase e depois versionados aqui para histórico. As três
+-- correções foram verificadas em produção reconsultando pg_policies após
+-- a execução -- este arquivo reflete o SQL que realmente rodou, não a
+-- primeira tentativa.
 --
 -- Este é o primeiro arquivo de migration do repositório: até agora nenhuma
 -- policy de RLS estava versionada em código, só existia como estado do banco.
+--
+-- Nota sobre os blocos DO $$ ... $$ abaixo: a tentativa inicial de
+-- `DROP POLICY "Acesso Público" ON public.products;` (nome digitado/colado
+-- direto) falhou com `ERROR: 42704: policy "Acesso Público" for table
+-- "products" does not exist` -- o acento em "Público" não batia byte a byte
+-- entre o que foi colado no SQL Editor e o que estava armazenado no
+-- catálogo. A correção é ler o policyname direto de pg_policies e usar
+-- format('DROP POLICY %I ON ...', pol.policyname) -- nunca retypa o nome,
+-- então não depende de encoding de quem cola o SQL. Reaplicada também para
+-- profiles por segurança, ainda que "Debug Open" não tenha acento.
 
 -- =====================================================================
 -- 1. Escalação de privilégio em profiles.is_admin
@@ -37,7 +50,17 @@ WITH CHECK (
 -- escrita restrita a admins, reaproveitando is_admin() já usado em
 -- orders/site_settings.
 -- =====================================================================
-DROP POLICY "Acesso Público" ON public.products;
+DO $$
+DECLARE
+  pol record;
+BEGIN
+  FOR pol IN
+    SELECT policyname FROM pg_policies
+    WHERE schemaname = 'public' AND tablename = 'products'
+  LOOP
+    EXECUTE format('DROP POLICY %I ON public.products', pol.policyname);
+  END LOOP;
+END $$;
 
 CREATE POLICY "Public can read products" ON public.products
   FOR SELECT USING (true);
@@ -63,5 +86,15 @@ CREATE POLICY "Admins can delete products" ON public.products
 -- "equipe" do /sobre vem de site_configs), então a remoção não afeta o
 -- funcionamento da vitrine.
 -- =====================================================================
-DROP POLICY "Debug Open" ON public.profiles;
-DROP POLICY "Public profiles are viewable by everyone" ON public.profiles;
+DO $$
+DECLARE
+  pol record;
+BEGIN
+  FOR pol IN
+    SELECT policyname FROM pg_policies
+    WHERE schemaname = 'public' AND tablename = 'profiles'
+      AND policyname IN ('Debug Open', 'Public profiles are viewable by everyone')
+  LOOP
+    EXECUTE format('DROP POLICY %I ON public.profiles', pol.policyname);
+  END LOOP;
+END $$;
