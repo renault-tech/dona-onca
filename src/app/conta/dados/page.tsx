@@ -122,7 +122,7 @@ export default function MyDataPage() {
                             name="full_name"
                             value={formData.full_name}
                             onChange={handleChange}
-                            className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-brand-500 focus:outline-none"
+                            className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none"
                             required
                         />
                     </div>
@@ -135,7 +135,7 @@ export default function MyDataPage() {
                             value={formData.phone}
                             onChange={handleChange}
                             placeholder="(00) 00000-0000"
-                            className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-brand-500 focus:outline-none"
+                            className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none"
                         />
                     </div>
 
@@ -176,7 +176,7 @@ export default function MyDataPage() {
                                 <input
                                     required
                                     type="text"
-                                    className="w-full rounded-lg border border-gray-300 p-2"
+                                    className="w-full rounded-lg border border-gray-300 p-2 text-gray-900 placeholder-gray-400"
                                     value={cardForm.holder_name}
                                     onChange={e => setCardForm({ ...cardForm, holder_name: e.target.value })}
                                 />
@@ -188,7 +188,7 @@ export default function MyDataPage() {
                                     type="text"
                                     maxLength={16}
                                     placeholder="0000 0000 0000 0000"
-                                    className="w-full rounded-lg border border-gray-300 p-2"
+                                    className="w-full rounded-lg border border-gray-300 p-2 text-gray-900 placeholder-gray-400"
                                     value={cardForm.number}
                                     onChange={e => setCardForm({ ...cardForm, number: e.target.value.replace(/\D/g, '') })}
                                 />
@@ -201,7 +201,7 @@ export default function MyDataPage() {
                                         type="text"
                                         placeholder="MM/AA"
                                         maxLength={5}
-                                        className="w-full rounded-lg border border-gray-300 p-2"
+                                        className="w-full rounded-lg border border-gray-300 p-2 text-gray-900 placeholder-gray-400"
                                         value={cardForm.expiry}
                                         onChange={e => setCardForm({ ...cardForm, expiry: e.target.value })}
                                     />
@@ -212,7 +212,7 @@ export default function MyDataPage() {
                                         required
                                         type="text"
                                         maxLength={4}
-                                        className="w-full rounded-lg border border-gray-300 p-2"
+                                        className="w-full rounded-lg border border-gray-300 p-2 text-gray-900 placeholder-gray-400"
                                         value={cardForm.cvv}
                                         onChange={e => setCardForm({ ...cardForm, cvv: e.target.value })}
                                     />

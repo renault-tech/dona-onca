@@ -111,7 +111,7 @@ function AccountForm() {
                                     name="name"
                                     value={formData.name}
                                     onChange={handleChange}
-                                    className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-brand-500 focus:outline-none"
+                                    className="w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none"
                                     placeholder="Seu nome"
                                     required
                                 />
@@ -125,7 +125,7 @@ function AccountForm() {
                                 name="email"
                                 value={formData.email}
                                 onChange={handleChange}
-                                className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-brand-500 focus:outline-none"
+                                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none"
                                 placeholder="seu@email.com"
                                 required
                             />
@@ -138,7 +138,7 @@ function AccountForm() {
                                 name="password"
                                 value={formData.password}
                                 onChange={handleChange}
-                                className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-brand-500 focus:outline-none"
+                                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none"
                                 placeholder="••••••••"
                                 required
                             />
@@ -152,7 +152,7 @@ function AccountForm() {
                                     name="confirmPassword"
                                     value={formData.confirmPassword}
                                     onChange={handleChange}
-                                    className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-brand-500 focus:outline-none"
+                                    className="w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none"
                                     placeholder="••••••••"
                                     required
                                 />

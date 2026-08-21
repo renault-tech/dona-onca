@@ -182,7 +182,7 @@ export default function AddressesPage() {
                                 type="text"
                                 value={formData.nickname || ''}
                                 onChange={e => setFormData({ ...formData, nickname: e.target.value })}
-                                className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:border-brand-500 focus:outline-none"
+                                className="w-full rounded-xl border border-gray-300 px-4 py-2 text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none"
                                 placeholder="Minha Casa"
                                 required
                             />
@@ -201,7 +201,7 @@ export default function AddressesPage() {
                                         }
                                     }}
                                     maxLength={9}
-                                    className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:border-brand-500 focus:outline-none"
+                                    className="w-full rounded-xl border border-gray-300 px-4 py-2 text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none"
                                     placeholder="00000-000"
                                     required
                                 />
@@ -217,7 +217,7 @@ export default function AddressesPage() {
                                 type="text"
                                 value={formData.state || ''}
                                 onChange={e => setFormData({ ...formData, state: e.target.value })}
-                                className="w-full rounded-xl border border-gray-300 px-4 py-2 bg-gray-50 focus:border-brand-500 focus:outline-none"
+                                className="w-full rounded-xl border border-gray-300 px-4 py-2 bg-gray-50 text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none"
                                 readOnly
                                 required
                             />
@@ -229,7 +229,7 @@ export default function AddressesPage() {
                                 type="text"
                                 value={formData.city || ''}
                                 onChange={e => setFormData({ ...formData, city: e.target.value })}
-                                className="w-full rounded-xl border border-gray-300 px-4 py-2 bg-gray-50 focus:border-brand-500 focus:outline-none"
+                                className="w-full rounded-xl border border-gray-300 px-4 py-2 bg-gray-50 text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none"
                                 readOnly
                                 required
                             />
@@ -241,7 +241,7 @@ export default function AddressesPage() {
                                 type="text"
                                 value={formData.district || ''}
                                 onChange={e => setFormData({ ...formData, district: e.target.value })}
-                                className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:border-brand-500 focus:outline-none"
+                                className="w-full rounded-xl border border-gray-300 px-4 py-2 text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none"
                                 required
                             />
                         </div>
@@ -252,7 +252,7 @@ export default function AddressesPage() {
                                 type="text"
                                 value={formData.street || ''}
                                 onChange={e => setFormData({ ...formData, street: e.target.value })}
-                                className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:border-brand-500 focus:outline-none"
+                                className="w-full rounded-xl border border-gray-300 px-4 py-2 text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none"
                                 required
                             />
                         </div>
@@ -263,7 +263,7 @@ export default function AddressesPage() {
                                 type="text"
                                 value={formData.number || ''}
                                 onChange={e => setFormData({ ...formData, number: e.target.value })}
-                                className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:border-brand-500 focus:outline-none"
+                                className="w-full rounded-xl border border-gray-300 px-4 py-2 text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none"
                                 required
                             />
                         </div>
@@ -274,7 +274,7 @@ export default function AddressesPage() {
                                 type="text"
                                 value={formData.complement || ''}
                                 onChange={e => setFormData({ ...formData, complement: e.target.value })}
-                                className="w-full rounded-xl border border-gray-300 px-4 py-2 focus:border-brand-500 focus:outline-none"
+                                className="w-full rounded-xl border border-gray-300 px-4 py-2 text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none"
                             />
                         </div>
 
