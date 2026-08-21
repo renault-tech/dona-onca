@@ -1,11 +1,11 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useState, useEffect, Suspense } from 'react';
 import { useProducts, categories } from '@/contexts/ProductContext';
-import FavoriteButton from '@/components/FavoriteButton';
+import ProductCard from '@/components/product/ProductCard';
+import EmptyState from '@/components/ui/EmptyState';
 
 type SortOption = 'newest' | 'price-low' | 'price-high' | 'name';
 
@@ -84,6 +84,7 @@ function ProductsContent() {
                         src="/header-bg-v2.png"
                         alt=""
                         fill
+                        sizes="100vw"
                         className="object-cover"
                         style={{ objectPosition: 'center top', filter: 'brightness(1.1)' }}
                     />
@@ -100,13 +101,10 @@ function ProductsContent() {
                     />
                 </div>
                 <div className="relative z-10 mx-auto max-w-7xl px-4 text-center">
-                    <h1
-                        className="text-3xl font-semibold text-white md:text-5xl tracking-wide"
-                        style={{ fontFamily: 'var(--font-cinzel), Cinzel, serif' }}
-                    >
+                    <h1 className="font-display text-3xl italic text-fg md:text-5xl">
                         {selectedCategory === 'Todos' ? 'Nossa Coleção' : selectedCategory}
                     </h1>
-                    <p className="mt-4 text-white/60 text-lg">
+                    <p className="mt-4 text-fg-muted text-lg">
                         Encontre as peças perfeitas para realçar sua beleza.
                     </p>
                 </div>
@@ -233,74 +231,11 @@ function ProductsContent() {
 
                         {/* Products Grid */}
                         {filteredAndSortedProducts.length === 0 ? (
-                            <div className="rounded-2xl card-dark p-12 text-center">
-                                <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-white/5">
-                                    <svg className="h-12 w-12 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                                    </svg>
-                                </div>
-                                <h2
-                                    className="mb-2 text-xl font-semibold text-white"
-                                    style={{ fontFamily: 'var(--font-cinzel), Cinzel, serif' }}
-                                >
-                                    Nenhum produto encontrado
-                                </h2>
-                                <p className="text-white/50">Tente ajustar seus filtros para encontrar o que procura</p>
-                            </div>
+                            <EmptyState message="Nenhum produto encontrado. Tente ajustar seus filtros." />
                         ) : (
                             <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4 xl:gap-6">
-                                {filteredAndSortedProducts.map((product) => (
-                                    <Link
-                                        key={product.id}
-                                        href={`/produto/${product.id}`}
-                                        className="group card-dark overflow-hidden transition-all hover:-translate-y-1"
-                                    >
-                                        <div className="relative aspect-[3/4] overflow-hidden bg-gradient-to-br from-[#1a0510]/50 to-transparent">
-                                            <Image
-                                                src={product.images[0] || '/logo.png'}
-                                                alt={product.name}
-                                                fill
-                                                className="object-cover transition-transform duration-500 group-hover:scale-105"
-                                            />
-                                            <span className="absolute left-3 top-3 rounded-full border border-[#d6008b] bg-black/60 backdrop-blur-sm px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
-                                                {product.category}
-                                            </span>
-                                            {product.originalPrice && product.originalPrice > product.price && (
-                                                <span className="absolute right-3 top-3 rounded-full bg-[#d6008b] px-2 py-1 text-[10px] font-bold text-white shadow-sm glow-neon">
-                                                    -{Math.round((1 - product.price / product.originalPrice) * 100)}%
-                                                </span>
-                                            )}
-                                            {product.stock === 0 && (
-                                                <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-[2px]">
-                                                    <span className="rounded-lg border border-white/20 bg-black/80 px-3 py-1 text-xs font-bold uppercase text-white">
-                                                        Esgotado
-                                                    </span>
-                                                </div>
-
-                                            )}
-                                            <div className="absolute right-3 bottom-3 z-10">
-                                                <FavoriteButton productId={product.id} />
-                                            </div>
-                                        </div>
-                                        <div className="p-4">
-                                            <h3 className="mb-1 text-sm font-medium text-white line-clamp-2 transition-colors group-hover:text-[#d6008b]">
-                                                {product.name}
-                                            </h3>
-                                            <div className="flex flex-wrap items-baseline gap-2">
-                                                <p className="text-base font-bold text-[#d6008b]">
-                                                    R$ {product.price.toFixed(2).replace('.', ',')}
-                                                </p>
-                                                {product.originalPrice && product.originalPrice > product.price && (
-                                                    <p className="text-xs text-white/40 line-through">
-                                                        R$ {product.originalPrice.toFixed(2).replace('.', ',')}
-                                                    </p>
-                                                )}
-                                            </div>
-                                            <p className="mt-1 text-[10px] text-white/40 font-medium italic">
-                                                ou 3x de R$ {(product.price / 3).toFixed(2).replace('.', ',')}
-                                            </p>
-                                        </div>
-                                    </Link>
+                                {filteredAndSortedProducts.map((product, i) => (
+                                    <ProductCard key={product.id} product={product} priority={i < 4} showInstallments />
                                 ))}
                             </div>
                         )}

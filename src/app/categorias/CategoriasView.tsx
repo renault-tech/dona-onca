@@ -1,30 +1,15 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { useProducts, categories } from '@/contexts/ProductContext';
+import OncaMark from '@/components/brand/OncaMark';
+import Reveal from '@/components/motion/Reveal';
 
-const categoryDetails: Record<string, { icon: string; description: string; color: string }> = {
-    'Lingerie': {
-        icon: '💎',
-        description: 'Sutiãs, calcinhas, conjuntos e mais',
-        color: 'from-pink-500 to-rose-600',
-    },
-    'Pijamas': {
-        icon: '🌙',
-        description: 'Camisolas, pijamas de seda e cetim',
-        color: 'from-purple-500 to-violet-600',
-    },
-    'Praia/Piscina': {
-        icon: '🏖️',
-        description: 'Biquínis, maiôs e saídas de praia',
-        color: 'from-cyan-500 to-blue-600',
-    },
-    'Sexshop': {
-        icon: '🔥',
-        description: 'Fantasias, acessórios e cosméticos',
-        color: 'from-red-500 to-orange-600',
-    },
+const categoryDescriptions: Record<string, string> = {
+    Lingerie: 'Sutiãs, calcinhas, conjuntos e mais',
+    Pijamas: 'Camisolas, pijamas de seda e cetim',
+    'Praia/Piscina': 'Biquínis, maiôs e saídas de praia',
+    Sexshop: 'Fantasias, acessórios e cosméticos',
 };
 
 export default function CategoriasView() {
@@ -32,53 +17,45 @@ export default function CategoriasView() {
 
     if (loading) {
         return (
-            <div className="flex min-h-screen items-center justify-center bg-gray-50">
-                <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand-200 border-t-brand-600" />
+            <div className="flex min-h-screen items-center justify-center">
+                <div className="h-10 w-10 animate-spin rounded-full border-4 border-white/20 border-t-accent" />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            {/* Header */}
-            <div className="bg-brand-600 py-12">
-                <div className="mx-auto max-w-7xl px-4 text-center">
-                    <h1 className="text-3xl font-bold text-white md:text-4xl">Categorias</h1>
-                    <p className="mt-2 text-brand-100">Encontre o que você procura</p>
-                </div>
+        <div className="min-h-screen">
+            <div className="border-b border-border py-16 text-center">
+                <p className="mb-2 text-xs uppercase tracking-[0.3em] text-fg-subtle">Navegue</p>
+                <h1 className="font-display text-4xl italic text-fg md:text-5xl">Categorias</h1>
             </div>
 
-            <div className="mx-auto max-w-7xl px-4 py-12">
+            <div className="mx-auto max-w-5xl px-4 py-16">
                 <div className="grid gap-6 md:grid-cols-2">
-                    {categories.map((cat) => {
+                    {categories.map((cat, i) => {
                         const products = getProductsByCategory(cat);
-                        const details = categoryDetails[cat];
-
                         return (
-                            <Link
-                                key={cat}
-                                href={`/produtos?categoria=${encodeURIComponent(cat)}`}
-                                className="group relative overflow-hidden rounded-2xl bg-white shadow-sm transition-all hover:shadow-xl hover:-translate-y-1"
-                            >
-                                <div className={`absolute inset-0 bg-gradient-to-br ${details.color} opacity-10 group-hover:opacity-20 transition-opacity`} />
-                                <div className="relative flex items-center gap-6 p-8">
-                                    <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-100 to-brand-50 text-4xl">
-                                        {details.icon}
-                                    </div>
-                                    <div className="flex-1">
-                                        <h2 className="text-2xl font-bold text-gray-900 group-hover:text-brand-600">
-                                            {cat}
-                                        </h2>
-                                        <p className="mt-1 text-gray-500">{details.description}</p>
-                                        <p className="mt-2 text-sm font-medium text-brand-600">
+                            <Reveal key={cat} delay={i * 80}>
+                                <Link
+                                    href={`/produtos?categoria=${encodeURIComponent(cat)}`}
+                                    className="group surface relative flex items-center gap-6 overflow-hidden p-8"
+                                >
+                                    <OncaMark className="pointer-events-none absolute -right-6 -bottom-6 h-32 w-32 text-accent opacity-[0.08] transition-opacity duration-300 group-hover:opacity-[0.14]" />
+                                    <span className="font-display text-lg italic text-accent">
+                                        {String(i + 1).padStart(2, '0')}
+                                    </span>
+                                    <div className="relative flex-1">
+                                        <h2 className="font-display text-2xl italic text-fg">{cat}</h2>
+                                        <p className="mt-1 text-sm text-fg-subtle">{categoryDescriptions[cat]}</p>
+                                        <p className="mt-2 text-xs font-medium uppercase tracking-wide text-accent">
                                             {products.length} {products.length === 1 ? 'produto' : 'produtos'}
                                         </p>
                                     </div>
-                                    <svg className="h-6 w-6 text-gray-400 group-hover:text-brand-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                    </svg>
-                                </div>
-                            </Link>
+                                    <span className="relative text-fg-subtle transition-transform duration-300 group-hover:translate-x-1 group-hover:text-accent">
+                                        →
+                                    </span>
+                                </Link>
+                            </Reveal>
                         );
                     })}
                 </div>

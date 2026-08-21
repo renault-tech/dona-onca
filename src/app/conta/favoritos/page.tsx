@@ -2,7 +2,7 @@
 
 import { useFavorites } from '@/contexts/FavoritesContext';
 import { useProducts } from '@/contexts/ProductContext';
-import ProductGrid from '@/components/ProductGrid';
+import ProductGrid from '@/components/product/ProductGrid';
 import Link from 'next/link';
 
 export default function FavoritesPage() {
