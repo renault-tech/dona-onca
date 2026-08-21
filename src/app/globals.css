@@ -123,6 +123,9 @@
      apagar os ~40 `style={{ fontFamily: 'var(--font-cinzel)...' }}` inline. */
   --font-sans: var(--font-archivo), system-ui, sans-serif;
   --font-display: var(--font-fraunces), Georgia, serif;
+
+  /* Raio de marca — gera a utility `rounded-onca` */
+  --radius-onca: var(--radius-onca);
 }
 
 /* ===== BASE ===== */

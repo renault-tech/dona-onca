@@ -2,305 +2,244 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { useState } from 'react';
 import { useProducts } from '@/contexts/ProductContext';
+import { supabase } from '@/lib/supabase';
 import FavoriteButton from '@/components/FavoriteButton';
+import Reveal from '@/components/motion/Reveal';
+import MarqueeRibbon from '@/components/shell/MarqueeRibbon';
+import TrustBand from '@/components/shell/TrustBand';
+import OncaMark from '@/components/brand/OncaMark';
 
-export default function HomeView() {
-  const { products, getProductsByCategory, loading, homeBanners } = useProducts();
-  const activeProducts = products.filter(p => p.active);
-  const featuredProducts = activeProducts.slice(0, 6);
+function NewsletterForm() {
+    const [email, setEmail] = useState('');
+    const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
 
-  // Ordenar banners por order
-  const sortedBanners = [...homeBanners].sort((a, b) => a.order - b.order);
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!email.trim()) return;
+        setStatus('sending');
+        try {
+            const { error } = await supabase.from('newsletter_subscribers').insert([{ email: email.trim() }]);
+            if (error) throw error;
+            setStatus('success');
+            setEmail('');
+        } catch (err) {
+            console.error('Newsletter signup failed:', err);
+            setStatus('error');
+        }
+    };
 
-  if (loading) {
+    if (status === 'success') {
+        return (
+            <p className="text-accent font-medium">Cadastro feito! Em breve você recebe nossas novidades.</p>
+        );
+    }
+
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-white/20 border-t-[#d6008b]" />
-          <p className="font-medium text-white/60">Carregando Dona Onça...</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen">
-      {/* Hero Section - COM imagem de fundo */}
-      <section className="relative h-[90vh] min-h-[700px] overflow-hidden">
-        {/* Background Image */}
-        <div className="absolute inset-0">
-          <Image
-            src="/header-bg-v2.png"
-            alt=""
-            fill
-            className="object-cover"
-            style={{ objectPosition: 'center top' }}
-            priority
-          />
-          {/* Gradient Overlay - fade to dark, but keep top more visible */}
-          <div
-            className="absolute inset-0"
-            style={{
-              background: `linear-gradient(to bottom, 
-                rgba(13, 3, 8, 0) 0%, 
-                rgba(13, 3, 8, 0.2) 50%, 
-                rgba(13, 3, 8, 0.6) 75%, 
-                rgba(5, 5, 5, 1) 100%)`
-            }}
-          />
-          {/* Side fades */}
-          <div
-            className="absolute inset-0"
-            style={{
-              background: `linear-gradient(to right, 
-                rgba(5, 5, 5, 0.8) 0%, 
-                transparent 20%, 
-                transparent 80%, 
-                rgba(5, 5, 5, 0.8) 100%)`
-            }}
-          />
-          {/* Reduce pink glow - darker overlay on top-left */}
-          <div
-            className="absolute inset-0"
-            style={{
-              background: `radial-gradient(ellipse at 0% 0%, rgba(5, 5, 5, 0.5) 0%, transparent 40%)`
-            }}
-          />
-        </div>
-
-        {/* Jaguar Watermark - Apenas silhueta, SEM fundo branco */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
-          <div className="relative w-[120%] h-[120%] opacity-[0.08]">
-            <Image
-              src="/onca-watermark.webp"
-              alt=""
-              fill
-              className="object-contain"
-              style={{ objectPosition: 'center center' }}
-            />
-          </div>
-        </div>
-
-        {/* Vignette Effect */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: 'radial-gradient(ellipse at center, transparent 30%, rgba(0, 0, 0, 0.7) 100%)'
-          }}
-        />
-
-        {/* Content - SEM logo, apenas texto */}
-        <div className="relative z-10 mx-auto flex h-full max-w-7xl flex-col items-center justify-center px-4 text-center">
-          <h1
-            className="mb-6 text-4xl font-semibold text-white md:text-5xl lg:text-6xl tracking-wider leading-tight"
-            style={{ fontFamily: 'var(--font-cinzel), Cinzel, serif' }}
-          >
-            SENSUALIDADE
-            <br />
-            EM CADA DETALHE.
-          </h1>
-
-          {/* Botão com fundo rosa semi-transparente */}
-          <Link
-            href="/produtos"
-            className="mt-4 px-10 py-4 text-sm md:text-base tracking-[0.2em] font-medium text-white uppercase rounded-full transition-all duration-300 hover:scale-105"
-            style={{
-              background: 'linear-gradient(135deg, rgba(214, 0, 139, 0.4) 0%, rgba(214, 0, 139, 0.25) 100%)',
-              border: '1px solid rgba(214, 0, 139, 0.6)',
-              boxShadow: '0 0 20px rgba(214, 0, 139, 0.3)',
-            }}
-          >
-            Explorar Coleção
-          </Link>
-        </div>
-
-        {/* Gradient Fade to next section */}
-        <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#050505] to-transparent" />
-      </section>
-
-      {/* Categories Section - Com banners editáveis */}
-      <section className="relative py-20 overflow-hidden">
-        {/* Background com silhueta da onça */}
-        <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-[#050505]" />
-
-          {/* Glow rosa no centro inferior */}
-          <div
-            className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-1/2"
-            style={{
-              background: 'radial-gradient(ellipse at center bottom, rgba(214, 0, 139, 0.15) 0%, transparent 70%)'
-            }}
-          />
-        </div>
-
-        <div className="relative z-10 mx-auto max-w-5xl px-4">
-          {/* Círculos de categoria - Editáveis via admin */}
-          <div className="flex justify-center gap-8 md:gap-16">
-            {sortedBanners.map((banner) => (
-              <Link
-                key={banner.id}
-                href={banner.link}
-                className="group flex flex-col items-center"
-              >
-                {/* Circle Container com imagem */}
-                <div
-                  className="relative flex h-28 w-28 md:h-36 md:w-36 lg:h-44 lg:w-44 items-center justify-center rounded-full overflow-hidden transition-all duration-300 group-hover:scale-105"
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(214, 0, 139, 0.2) 0%, rgba(26, 5, 16, 0.8) 100%)',
-                    border: '2px solid #d6008b',
-                    boxShadow: '0 0 25px rgba(214, 0, 139, 0.4), inset 0 0 30px rgba(214, 0, 139, 0.1)',
-                  }}
-                >
-                  {/* Imagem do banner ou emoji fallback */}
-                  {banner.image ? (
-                    <>
-                      <Image
-                        src={banner.image}
-                        alt={banner.name}
-                        fill
-                        className="object-cover"
-                        style={{
-                          // Filtro mais claro para dar mais destaque às lingeries
-                          filter: 'brightness(1.05) saturate(1.1) contrast(1.05)',
-                        }}
-                      />
-                      {/* Overlay rosa para harmonizar com o tema */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-[#d6008b]/20 to-transparent mix-blend-overlay" />
-                    </>
-                  ) : (
-                    <span className="text-4xl md:text-5xl lg:text-6xl">
-                      {banner.name === 'Lingerie' ? '👙' : banner.name === 'Toys' ? '💜' : '🕯️'}
-                    </span>
-                  )}
-
-                  {/* Overlay rosa no hover */}
-                  <div className="absolute inset-0 bg-[#d6008b]/0 group-hover:bg-[#d6008b]/30 transition-colors duration-300" />
-                </div>
-
-                {/* Nome da categoria */}
-                <h3
-                  className="mt-4 text-sm md:text-base font-medium text-white tracking-[0.15em] uppercase group-hover:text-[#d6008b] transition-colors"
-                  style={{ fontFamily: 'var(--font-cinzel), Cinzel, serif' }}
-                >
-                  {banner.name}
-                </h3>
-              </Link>
-            ))}
-          </div>
-
-          {/* Link para ver todas as categorias */}
-          <div className="mt-12 text-center">
-            <Link
-              href="/produtos"
-              className="text-sm text-white/50 hover:text-[#d6008b] transition-colors tracking-wide"
-            >
-              Ver todas as categorias →
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Products Grid */}
-      <section className="py-20">
-        <div className="mx-auto max-w-7xl px-4">
-          <div className="mb-10 flex items-center justify-between">
-            <h2
-              className="text-2xl font-semibold text-white md:text-3xl tracking-wide"
-              style={{ fontFamily: 'var(--font-cinzel), Cinzel, serif' }}
-            >
-              Destaques
-            </h2>
-            <Link
-              href="/produtos"
-              className="font-medium text-[#d6008b] hover:text-white transition-colors"
-            >
-              Ver todos →
-            </Link>
-          </div>
-
-          {featuredProducts.length === 0 ? (
-            <div className="rounded-2xl card-dark p-12 text-center">
-              <p className="text-white/50">Nenhum produto cadastrado ainda.</p>
-              <Link href="/admin/products/new" className="mt-4 inline-block text-[#d6008b] hover:underline">
-                Adicionar primeiro produto →
-              </Link>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:gap-6">
-              {featuredProducts.map((product) => (
-                <Link
-                  key={product.id}
-                  href={`/produto/${product.id}`}
-                  className="group card-dark overflow-hidden"
-                >
-                  {/* Product Image */}
-                  <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-[#1a0510]/50 to-transparent">
-                    <Image
-                      src={product.images[0] || '/logo.png'}
-                      alt={product.name}
-                      fill
-                      className="object-contain p-6 transition-transform duration-500 group-hover:scale-110"
-                    />
-                    <span className="absolute left-3 top-3 rounded-full border border-[#d6008b] bg-[#d6008b]/20 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
-                      {product.category}
-                    </span>
-                    <div className="absolute right-3 bottom-3 z-10">
-                      <FavoriteButton productId={product.id} />
-                    </div>
-                  </div>
-
-                  {/* Product Info */}
-                  <div className="p-4">
-                    <h3 className="mb-2 font-medium text-white line-clamp-2 group-hover:text-[#d6008b] transition-colors">
-                      {product.name}
-                    </h3>
-                    <p className="text-xl font-bold text-[#d6008b]">
-                      R$ {product.price.toFixed(2).replace('.', ',')}
-                    </p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#1a0510]/30 to-transparent" />
-
-        <div className="relative z-10 mx-auto max-w-3xl px-4 text-center">
-          <h2
-            className="mb-4 text-3xl font-semibold text-white tracking-wide"
-            style={{ fontFamily: 'var(--font-cinzel), Cinzel, serif' }}
-          >
-            Receba Novidades
-          </h2>
-          <p className="mb-8 text-white/60">
-            Cadastre-se e seja a primeira a saber das nossas ofertas exclusivas
-          </p>
-          <form className="flex flex-col gap-4 sm:flex-row sm:justify-center">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4 sm:flex-row sm:justify-center">
             <input
-              type="email"
-              placeholder="Seu melhor e-mail"
-              className="input-dark px-6 py-4 sm:w-80"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Seu melhor e-mail"
+                className="field px-6 py-4 sm:w-80"
             />
-            <button
-              type="submit"
-              className="px-8 py-4 rounded-full text-white font-medium tracking-wide transition-all duration-300 hover:scale-105"
-              style={{
-                background: 'linear-gradient(135deg, rgba(214, 0, 139, 0.5) 0%, rgba(214, 0, 139, 0.3) 100%)',
-                border: '1px solid rgba(214, 0, 139, 0.6)',
-                boxShadow: '0 0 15px rgba(214, 0, 139, 0.3)',
-              }}
-            >
-              Cadastrar
+            <button type="submit" disabled={status === 'sending'} className="btn btn-fill px-8 py-4 text-sm disabled:opacity-60">
+                {status === 'sending' ? 'Enviando...' : 'Cadastrar'}
             </button>
-          </form>
-        </div>
-      </section>
-    </div>
-  );
+            {status === 'error' && (
+                <p className="text-xs text-fg-subtle sm:absolute sm:mt-14">
+                    Não foi possível cadastrar agora. Tente novamente em instantes.
+                </p>
+            )}
+        </form>
+    );
 }
 
+export default function HomeView() {
+    const { products, loading, homeBanners } = useProducts();
+    const activeProducts = products.filter((p) => p.active);
+    const featuredProducts = activeProducts.slice(0, 6);
+    const sortedBanners = [...homeBanners].sort((a, b) => a.order - b.order);
+
+    if (loading) {
+        return (
+            <div className="flex min-h-screen items-center justify-center">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="h-12 w-12 animate-spin rounded-full border-4 border-white/20 border-t-accent" />
+                    <p className="font-medium text-fg-muted">Carregando Dona Onça...</p>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="min-h-screen">
+            {/* Hero */}
+            <section className="relative h-[90vh] min-h-[700px] overflow-hidden">
+                <div className="absolute inset-0">
+                    <Image
+                        src="/header-bg-v2.png"
+                        alt=""
+                        fill
+                        className="object-cover"
+                        style={{ objectPosition: 'center top' }}
+                        priority
+                        sizes="100vw"
+                    />
+                    <div
+                        className="absolute inset-0"
+                        style={{
+                            background: `linear-gradient(to bottom,
+                rgba(5, 5, 5, 0.1) 0%,
+                rgba(5, 5, 5, 0.35) 55%,
+                rgba(5, 5, 5, 0.85) 85%,
+                rgba(5, 5, 5, 1) 100%)`,
+                        }}
+                    />
+                </div>
+
+                <div className="relative z-10 mx-auto flex h-full max-w-7xl flex-col justify-end px-4 pb-24 sm:px-8">
+                    <Reveal as="p" className="mb-4 text-xs uppercase tracking-[0.35em] text-accent">
+                        Coleção atual
+                    </Reveal>
+                    <Reveal delay={120}>
+                        <h1 className="font-display max-w-3xl text-5xl italic leading-[0.95] text-fg sm:text-7xl lg:text-8xl">
+                            Sensualidade
+                            <br />
+                            em cada detalhe.
+                        </h1>
+                    </Reveal>
+                    <Reveal delay={280} className="mt-8">
+                        <Link href="/produtos" className="btn btn-fill inline-flex px-10 py-4 text-xs sm:text-sm">
+                            Explorar coleção
+                        </Link>
+                    </Reveal>
+                </div>
+            </section>
+
+            <MarqueeRibbon text="Dona Onça" className="border-y border-border bg-black py-4" />
+
+            {/* Categorias — blocos editoriais numerados, não círculos */}
+            <section className="relative py-24">
+                <div className="mx-auto max-w-7xl px-4 sm:px-8">
+                    <Reveal>
+                        <p className="mb-2 text-xs uppercase tracking-[0.3em] text-fg-subtle">Explore</p>
+                        <h2 className="font-display text-3xl italic text-fg sm:text-4xl">Nossas coleções</h2>
+                    </Reveal>
+
+                    <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                        {sortedBanners.map((banner, i) => (
+                            <Reveal key={banner.id} delay={i * 100}>
+                                <Link href={banner.link} className="group relative block aspect-[4/5] overflow-hidden rounded-onca surface">
+                                    {banner.image ? (
+                                        <Image
+                                            src={banner.image}
+                                            alt={banner.name}
+                                            fill
+                                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                                            className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                                        />
+                                    ) : (
+                                        <div className="absolute inset-0 flex items-center justify-center bg-bg-warm">
+                                            <OncaMark className="h-24 w-24 text-accent opacity-40" />
+                                        </div>
+                                    )}
+                                    <div
+                                        className="absolute inset-0"
+                                        style={{
+                                            background:
+                                                'linear-gradient(to top, rgba(5,5,5,0.9) 0%, rgba(5,5,5,0.15) 55%, transparent 100%)',
+                                        }}
+                                    />
+                                    <span className="absolute left-5 top-5 font-display text-sm italic text-accent">
+                                        {String(i + 1).padStart(2, '0')}
+                                    </span>
+                                    <div className="absolute inset-x-5 bottom-5 flex items-center justify-between">
+                                        <h3 className="font-display text-2xl italic text-fg">{banner.name}</h3>
+                                        <span className="text-fg transition-transform duration-300 group-hover:translate-x-1">
+                                            →
+                                        </span>
+                                    </div>
+                                </Link>
+                            </Reveal>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* Destaques */}
+            <section className="py-24">
+                <div className="mx-auto max-w-7xl px-4 sm:px-8">
+                    <Reveal className="mb-12 flex items-end justify-between">
+                        <div>
+                            <p className="mb-2 text-xs uppercase tracking-[0.3em] text-fg-subtle">Selecionados</p>
+                            <h2 className="font-display text-3xl italic text-fg sm:text-4xl">Destaques</h2>
+                        </div>
+                        <Link href="/produtos" className="text-sm font-medium text-accent hover:text-fg transition-colors">
+                            Ver todos →
+                        </Link>
+                    </Reveal>
+
+                    {featuredProducts.length === 0 ? (
+                        <div className="rounded-onca surface p-12 text-center">
+                            <p className="text-fg-subtle">Nenhum produto cadastrado ainda.</p>
+                            <Link href="/admin/products/new" className="mt-4 inline-block text-accent hover:underline">
+                                Adicionar primeiro produto →
+                            </Link>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:gap-6">
+                            {featuredProducts.map((product, i) => (
+                                <Reveal key={product.id} delay={(i % 3) * 90}>
+                                    <Link href={`/produto/${product.id}`} className="group block">
+                                        <div className="relative aspect-[4/5] overflow-hidden rounded-onca bg-surface">
+                                            <Image
+                                                src={product.images[0] || '/logo.png'}
+                                                alt={product.name}
+                                                fill
+                                                sizes="(max-width: 768px) 50vw, 33vw"
+                                                className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                                            />
+                                            <span className="absolute left-3 top-3 rounded-full bg-bg/80 px-3 py-1 text-[10px] uppercase tracking-wide text-fg-muted backdrop-blur-sm">
+                                                {product.category}
+                                            </span>
+                                            <div className="absolute right-3 bottom-3 z-10">
+                                                <FavoriteButton productId={product.id} />
+                                            </div>
+                                        </div>
+                                        <div className="mt-3">
+                                            <h3 className="text-sm text-fg-muted line-clamp-1 group-hover:text-fg transition-colors">
+                                                {product.name}
+                                            </h3>
+                                            <p className="mt-1 text-base font-semibold text-accent">
+                                                R$ {product.price.toFixed(2).replace('.', ',')}
+                                            </p>
+                                        </div>
+                                    </Link>
+                                </Reveal>
+                            ))}
+                        </div>
+                    )}
+
+                    <TrustBand className="mt-20" />
+                </div>
+            </section>
+
+            {/* Newsletter */}
+            <section className="relative py-24">
+                <div className="relative mx-auto max-w-3xl px-4 text-center">
+                    <Reveal>
+                        <h2 className="font-display text-3xl italic text-fg sm:text-4xl">Receba novidades</h2>
+                        <p className="mt-4 mb-8 text-fg-muted">
+                            Cadastre-se e seja a primeira a saber das nossas ofertas exclusivas.
+                        </p>
+                        <NewsletterForm />
+                    </Reveal>
+                </div>
+            </section>
+        </div>
+    );
+}
