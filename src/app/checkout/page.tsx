@@ -2,10 +2,10 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useCart } from '@/contexts/CartContext';
 import { useProducts } from '@/contexts/ProductContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase';
 import { useState, useEffect } from 'react';
 
 interface Address {
@@ -21,25 +21,20 @@ interface Address {
     isDefault: boolean;
 }
 
-interface Card {
-    id: string;
-    label: string;
-    lastDigits: string;
-    brand: string;
-    isDefault: boolean;
-}
+type PaymentMethod = 'pix' | 'boleto';
 
 export default function CheckoutPage() {
-    const { items, subtotal, total, clearCart } = useCart();
+    const { items, subtotal, shipping, total, clearCart } = useCart();
     const { sellProduct } = useProducts();
     const { user, profile, loading: authLoading, signIn, signUp, updateProfile } = useAuth();
-    const router = useRouter();
 
     const [step, setStep] = useState(1); // 1=Login/Register, 2=Personal, 3=Address, 4=Payment
     const [isProcessing, setIsProcessing] = useState(false);
     const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
     const [loadingCep, setLoadingCep] = useState(false);
     const [authError, setAuthError] = useState('');
+    const [orderError, setOrderError] = useState('');
+    const [completedOrder, setCompletedOrder] = useState<{ id: string; total: number } | null>(null);
 
     // Auth form
     const [authForm, setAuthForm] = useState({
@@ -62,24 +57,16 @@ export default function CheckoutPage() {
         neighborhood: '',
         city: '',
         state: '',
-        paymentMethod: 'credit',
-        cardNumber: '',
-        cardName: '',
-        cardExpiry: '',
-        cardCvv: '',
+        paymentMethod: 'pix' as PaymentMethod,
         saveAddress: true,
-        saveCard: false,
         setAsDefaultAddress: true,
-        setAsDefaultCard: false,
     });
 
-    // Saved addresses and cards
+    // Saved addresses (por navegador -- endereço de entrega usado no pedido vem do
+    // profile, atualizado no envio do checkout)
     const [savedAddresses, setSavedAddresses] = useState<Address[]>([]);
-    const [savedCards, setSavedCards] = useState<Card[]>([]);
     const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
-    const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
     const [showNewAddressForm, setShowNewAddressForm] = useState(false);
-    const [showNewCardForm, setShowNewCardForm] = useState(false);
 
     // Determine starting step based on auth status
     useEffect(() => {
@@ -128,22 +115,31 @@ export default function CheckoutPage() {
                     setSavedAddresses([defaultAddress]);
                     setSelectedAddressId('profile-default');
                 }
-
-                // Load saved cards
-                const savedCardsKey = `donaonca-cards-${user.id}`;
-                const savedCardsData = localStorage.getItem(savedCardsKey);
-                if (savedCardsData) {
-                    const cards = JSON.parse(savedCardsData);
-                    setSavedCards(cards);
-                    const defaultCard = cards.find((c: Card) => c.isDefault);
-                    if (defaultCard) setSelectedCardId(defaultCard.id);
-                }
             } else {
                 // Not logged in, start at login
                 setStep(1);
             }
         }
     }, [authLoading, user, profile]);
+
+    // Ao escolher um endereço salvo, sincroniza formData com ele -- antes, selecionar
+    // um endereço diferente do padrão não tinha efeito nenhum no que era salvo/usado.
+    useEffect(() => {
+        if (!selectedAddressId || showNewAddressForm) return;
+        const selected = savedAddresses.find(a => a.id === selectedAddressId);
+        if (selected) {
+            setFormData(prev => ({
+                ...prev,
+                cep: selected.cep,
+                address: selected.address,
+                number: selected.number,
+                complement: selected.complement,
+                neighborhood: selected.neighborhood,
+                city: selected.city,
+                state: selected.state,
+            }));
+        }
+    }, [selectedAddressId, showNewAddressForm, savedAddresses]);
 
     const handleAuthSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -172,7 +168,7 @@ export default function CheckoutPage() {
                     setStep(2);
                 }
             }
-        } catch (err) {
+        } catch {
             setAuthError('Erro ao processar. Tente novamente.');
         } finally {
             setIsProcessing(false);
@@ -245,46 +241,62 @@ export default function CheckoutPage() {
         localStorage.setItem(`donaonca-addresses-${user.id}`, JSON.stringify(updatedAddresses));
     };
 
-    const handleSaveNewCard = () => {
-        if (!user) return;
-
-        const lastDigits = formData.cardNumber.replace(/\s/g, '').slice(-4);
-        const newCard: Card = {
-            id: `card-${Date.now()}`,
-            label: savedCards.length === 0 ? 'Cartão Principal' : `Cartão ${savedCards.length + 1}`,
-            lastDigits,
-            brand: 'Visa', // Simplified
-            isDefault: formData.setAsDefaultCard || savedCards.length === 0,
-        };
-
-        let updatedCards = savedCards;
-        if (newCard.isDefault) {
-            updatedCards = savedCards.map(c => ({ ...c, isDefault: false }));
-        }
-        updatedCards = [...updatedCards, newCard];
-
-        setSavedCards(updatedCards);
-        setSelectedCardId(newCard.id);
-        setShowNewCardForm(false);
-
-        localStorage.setItem(`donaonca-cards-${user.id}`, JSON.stringify(updatedCards));
-    };
-
     const handleCompleteOrder = async () => {
+        if (!user) return;
+        setOrderError('');
         setIsProcessing(true);
 
-        // Deduct stock for each item
-        items.forEach(item => {
-            sellProduct(item.productId, item.quantity);
-        });
+        try {
+            // 1. Persiste os dados pessoais e o endereço de entrega no perfil -- é de lá
+            // que o admin lê o endereço na hora de gerar a etiqueta de envio.
+            const { error: profileError } = await updateProfile({
+                full_name: formData.name,
+                cpf: formData.cpf,
+                phone: formData.phone,
+                cep: formData.cep,
+                address: formData.address,
+                number: formData.number,
+                complement: formData.complement,
+                neighborhood: formData.neighborhood,
+                city: formData.city,
+                state: formData.state,
+            });
+            if (profileError) throw profileError;
 
-        // Simulate processing
-        await new Promise(resolve => setTimeout(resolve, 1500));
+            // 2. Grava o pedido de verdade.
+            const orderItems = items.map(item => ({
+                productId: item.productId,
+                productName: item.name,
+                quantity: item.quantity,
+                price: item.price,
+            }));
 
-        clearCart();
-        alert('Pedido realizado com sucesso!');
-        router.push('/');
-        setIsProcessing(false);
+            const { data: order, error: insertError } = await supabase
+                .from('orders')
+                .insert([{
+                    user_id: user.id,
+                    items: orderItems,
+                    total,
+                    status: 'Pendente',
+                }])
+                .select()
+                .single();
+
+            if (insertError) throw insertError;
+
+            // 3. Só baixa estoque depois do pedido gravado com sucesso.
+            items.forEach(item => {
+                sellProduct(item.productId, item.quantity);
+            });
+
+            clearCart();
+            setCompletedOrder({ id: order.id, total });
+        } catch (err) {
+            console.error('Erro ao finalizar pedido:', err);
+            setOrderError('Não foi possível concluir seu pedido agora. Tente novamente em instantes.');
+        } finally {
+            setIsProcessing(false);
+        }
     };
 
     const inputClass = "w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500";
@@ -293,6 +305,37 @@ export default function CheckoutPage() {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
                 <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand-600 border-t-transparent"></div>
+            </div>
+        );
+    }
+
+    // Confirmação de pedido concluído
+    if (completedOrder) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+                <div className="w-full max-w-md rounded-2xl bg-white p-8 text-center shadow-sm">
+                    <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+                        <svg className="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                    </div>
+                    <h1 className="mb-2 text-2xl font-bold text-gray-900">Pedido recebido!</h1>
+                    <p className="mb-1 text-sm text-gray-500">Pedido #{completedOrder.id.slice(0, 8)}</p>
+                    <p className="mb-6 text-gray-600">
+                        Total de <strong>R$ {completedOrder.total.toFixed(2).replace('.', ',')}</strong>.
+                        {formData.paymentMethod === 'pix'
+                            ? ' Vamos te enviar o código Pix por e-mail para confirmar o pagamento.'
+                            : ' O boleto será enviado por e-mail em instantes.'}
+                    </p>
+                    <div className="flex flex-col gap-3">
+                        <Link href="/conta/pedidos" className="rounded-xl bg-brand-600 py-3 font-medium text-white hover:bg-brand-700">
+                            Ver meus pedidos
+                        </Link>
+                        <Link href="/produtos" className="rounded-xl border border-gray-300 py-3 font-medium text-gray-700 hover:bg-gray-50">
+                            Continuar comprando
+                        </Link>
+                    </div>
+                </div>
             </div>
         );
     }
@@ -310,7 +353,6 @@ export default function CheckoutPage() {
     }
 
     const stepLabels = user ? ['Dados', 'Entrega', 'Pagamento'] : ['Login', 'Dados', 'Entrega', 'Pagamento'];
-    const totalSteps = user ? 3 : 4;
     const adjustedStep = user ? step - 1 : step;
 
     return (
@@ -583,127 +625,46 @@ export default function CheckoutPage() {
 
                                     {/* Payment Methods */}
                                     <div className="mb-6 flex gap-4">
-                                        {['credit', 'pix', 'boleto'].map((method) => (
+                                        <button
+                                            disabled
+                                            title="Em breve"
+                                            className="flex-1 rounded-xl border-2 border-gray-200 p-4 text-center opacity-50 cursor-not-allowed"
+                                        >
+                                            <span className="block font-medium text-gray-500">Cartão</span>
+                                            <span className="text-xs text-gray-400">Em breve</span>
+                                        </button>
+                                        {(['pix', 'boleto'] as PaymentMethod[]).map((method) => (
                                             <button
                                                 key={method}
                                                 onClick={() => setFormData(prev => ({ ...prev, paymentMethod: method }))}
                                                 className={`flex-1 rounded-xl border-2 p-4 text-center transition-all ${formData.paymentMethod === method ? 'border-brand-600 bg-brand-50' : 'border-gray-200 hover:border-brand-300'}`}
                                             >
                                                 <span className="block font-medium text-gray-900">
-                                                    {method === 'credit' ? '💳 Cartão' : method === 'pix' ? '📱 Pix' : '📄 Boleto'}
+                                                    {method === 'pix' ? 'Pix' : 'Boleto'}
                                                 </span>
                                             </button>
                                         ))}
                                     </div>
 
-                                    {formData.paymentMethod === 'credit' && (
-                                        <>
-                                            {/* Saved Cards */}
-                                            {savedCards.length > 0 && !showNewCardForm && (
-                                                <div className="mb-6 space-y-3">
-                                                    {savedCards.map((card) => (
-                                                        <label
-                                                            key={card.id}
-                                                            className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${selectedCardId === card.id ? 'border-brand-600 bg-brand-50' : 'border-gray-200 hover:border-brand-300'}`}
-                                                        >
-                                                            <input
-                                                                type="radio"
-                                                                name="selectedCard"
-                                                                checked={selectedCardId === card.id}
-                                                                onChange={() => setSelectedCardId(card.id)}
-                                                            />
-                                                            <div className="flex-1">
-                                                                <div className="flex items-center gap-2">
-                                                                    <span className="font-medium text-gray-900">{card.brand} •••• {card.lastDigits}</span>
-                                                                    {card.isDefault && (
-                                                                        <span className="text-xs bg-brand-100 text-brand-700 px-2 py-0.5 rounded-full">Padrão</span>
-                                                                    )}
-                                                                </div>
-                                                            </div>
-                                                        </label>
-                                                    ))}
-
-                                                    <button
-                                                        onClick={() => setShowNewCardForm(true)}
-                                                        className="w-full p-4 rounded-xl border-2 border-dashed border-gray-300 text-gray-600 hover:border-brand-400 hover:text-brand-600 transition-colors"
-                                                    >
-                                                        + Adicionar novo cartão
-                                                    </button>
-                                                </div>
-                                            )}
-
-                                            {/* New Card Form */}
-                                            {(savedCards.length === 0 || showNewCardForm) && (
-                                                <div className="grid gap-4 md:grid-cols-2">
-                                                    <div className="md:col-span-2">
-                                                        <label className="mb-1 block text-sm font-medium text-gray-700">Número do Cartão</label>
-                                                        <input type="text" name="cardNumber" value={formData.cardNumber} onChange={handleChange} className={inputClass} placeholder="0000 0000 0000 0000" />
-                                                    </div>
-                                                    <div className="md:col-span-2">
-                                                        <label className="mb-1 block text-sm font-medium text-gray-700">Nome no Cartão</label>
-                                                        <input type="text" name="cardName" value={formData.cardName} onChange={handleChange} className={inputClass} />
-                                                    </div>
-                                                    <div>
-                                                        <label className="mb-1 block text-sm font-medium text-gray-700">Validade</label>
-                                                        <input type="text" name="cardExpiry" value={formData.cardExpiry} onChange={handleChange} className={inputClass} placeholder="MM/AA" />
-                                                    </div>
-                                                    <div>
-                                                        <label className="mb-1 block text-sm font-medium text-gray-700">CVV</label>
-                                                        <input type="text" name="cardCvv" value={formData.cardCvv} onChange={handleChange} className={inputClass} placeholder="000" />
-                                                    </div>
-
-                                                    <div className="md:col-span-2 pt-2">
-                                                        <label className="flex items-center gap-2 cursor-pointer">
-                                                            <input
-                                                                type="checkbox"
-                                                                name="setAsDefaultCard"
-                                                                checked={formData.setAsDefaultCard}
-                                                                onChange={handleChange}
-                                                                className="rounded border-gray-300 text-brand-600"
-                                                            />
-                                                            <span className="text-sm text-gray-600">Definir como cartão padrão</span>
-                                                        </label>
-                                                    </div>
-
-                                                    {showNewCardForm && (
-                                                        <div className="md:col-span-2 flex gap-3">
-                                                            <button
-                                                                onClick={handleSaveNewCard}
-                                                                className="rounded-xl bg-brand-600 px-6 py-2 text-sm font-medium text-white hover:bg-brand-700"
-                                                            >
-                                                                Salvar Cartão
-                                                            </button>
-                                                            <button
-                                                                onClick={() => setShowNewCardForm(false)}
-                                                                className="rounded-xl border border-gray-300 px-6 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                                                            >
-                                                                Cancelar
-                                                            </button>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </>
-                                    )}
-
                                     {formData.paymentMethod === 'pix' && (
                                         <div className="rounded-xl bg-gray-50 p-6 text-center">
-                                            <div className="mx-auto mb-4 h-48 w-48 rounded-xl bg-white p-4">
-                                                <div className="flex h-full items-center justify-center border-2 border-dashed border-gray-300 rounded-lg">
-                                                    <span className="text-gray-400">QR Code Pix</span>
-                                                </div>
-                                            </div>
-                                            <p className="text-sm text-gray-600">Escaneie o QR Code ou copie o código Pix</p>
+                                            <p className="text-gray-600">
+                                                O código Pix é gerado após a confirmação do pedido e enviado por e-mail.
+                                            </p>
                                         </div>
                                     )}
 
                                     {formData.paymentMethod === 'boleto' && (
                                         <div className="rounded-xl bg-gray-50 p-6 text-center">
                                             <p className="text-gray-600">
-                                                O boleto será gerado após a confirmação do pedido.
+                                                O boleto será gerado após a confirmação do pedido e enviado por e-mail.
                                                 <br /><span className="text-sm">Vencimento: 3 dias úteis</span>
                                             </p>
                                         </div>
+                                    )}
+
+                                    {orderError && (
+                                        <p className="mt-4 text-sm text-red-500">{orderError}</p>
                                     )}
                                 </>
                             )}
@@ -767,7 +728,9 @@ export default function CheckoutPage() {
                             </div>
                             <div className="flex justify-between text-gray-600">
                                 <span>Frete</span>
-                                <span className="text-green-600">Grátis</span>
+                                <span className={shipping === 0 ? 'text-green-600' : ''}>
+                                    {shipping === 0 ? 'Grátis' : `R$ ${shipping.toFixed(2).replace('.', ',')}`}
+                                </span>
                             </div>
                         </div>
 
