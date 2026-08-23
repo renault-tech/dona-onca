@@ -1,12 +1,17 @@
 'use client';
 
-import Link from 'next/link';
 import { useState, useEffect, Suspense } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 
 function AccountForm() {
     const [isRegistering, setIsRegistering] = useState(false);
+    const [isForgotPassword, setIsForgotPassword] = useState(false);
+    const [forgotEmail, setForgotEmail] = useState('');
+    const [forgotSent, setForgotSent] = useState(false);
+    const [forgotError, setForgotError] = useState<string | null>(null);
+    const [isSendingReset, setIsSendingReset] = useState(false);
     const { signIn, signUp, user, loading } = useAuth();
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -20,6 +25,24 @@ function AccountForm() {
     });
     const [error, setError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const handleForgotPassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setForgotError(null);
+        setIsSendingReset(true);
+        try {
+            const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+                redirectTo: `${window.location.origin}/conta/redefinir-senha`,
+            });
+            if (error) throw error;
+            setForgotSent(true);
+        } catch (err) {
+            console.error(err);
+            setForgotError('Não foi possível enviar o link agora. Tente novamente em instantes.');
+        } finally {
+            setIsSendingReset(false);
+        }
+    };
 
     // Redirect if already logged in
     useEffect(() => {
@@ -81,6 +104,71 @@ function AccountForm() {
         return (
             <div className="flex min-h-screen items-center justify-center bg-gray-50">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600"></div>
+            </div>
+        );
+    }
+
+    if (isForgotPassword) {
+        return (
+            <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12">
+                <div className="w-full max-w-md">
+                    <div className="rounded-2xl bg-white p-8 shadow-sm">
+                        {forgotSent ? (
+                            <>
+                                <h1 className="mb-2 text-center text-2xl font-bold text-gray-900">E-mail enviado!</h1>
+                                <p className="mb-8 text-center text-gray-500">
+                                    Se <strong>{forgotEmail}</strong> estiver cadastrado, você vai receber um link para redefinir sua senha em instantes.
+                                </p>
+                            </>
+                        ) : (
+                            <>
+                                <h1 className="mb-2 text-center text-2xl font-bold text-gray-900">Esqueci minha senha</h1>
+                                <p className="mb-8 text-center text-gray-500">
+                                    Informe seu e-mail e enviaremos um link para você criar uma senha nova.
+                                </p>
+
+                                {forgotError && (
+                                    <div className="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-600">
+                                        {forgotError}
+                                    </div>
+                                )}
+
+                                <form onSubmit={handleForgotPassword} className="space-y-4">
+                                    <div>
+                                        <label className="mb-1 block text-sm font-medium text-gray-700">E-mail</label>
+                                        <input
+                                            type="email"
+                                            value={forgotEmail}
+                                            onChange={(e) => setForgotEmail(e.target.value)}
+                                            className="w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none"
+                                            placeholder="seu@email.com"
+                                            required
+                                        />
+                                    </div>
+                                    <button
+                                        type="submit"
+                                        disabled={isSendingReset}
+                                        className="w-full rounded-xl bg-brand-600 py-3 font-semibold text-white transition-colors hover:bg-brand-700 disabled:opacity-70"
+                                    >
+                                        {isSendingReset ? 'Enviando...' : 'Enviar link de recuperação'}
+                                    </button>
+                                </form>
+                            </>
+                        )}
+
+                        <button
+                            onClick={() => {
+                                setIsForgotPassword(false);
+                                setForgotSent(false);
+                                setForgotError(null);
+                                setForgotEmail('');
+                            }}
+                            className="mt-6 w-full text-center text-sm font-medium text-brand-600 hover:underline"
+                        >
+                            ← Voltar para o login
+                        </button>
+                    </div>
+                </div>
             </div>
         );
     }
@@ -176,9 +264,16 @@ function AccountForm() {
                     </form>
 
                     {!isRegistering && (
-                        <p className="mt-4 text-center text-sm text-brand-600 hover:underline cursor-pointer">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setIsForgotPassword(true);
+                                setForgotEmail(formData.email);
+                            }}
+                            className="mt-4 block w-full text-center text-sm text-brand-600 hover:underline"
+                        >
                             Esqueci minha senha
-                        </p>
+                        </button>
                     )}
 
                     <div className="mt-6 border-t border-gray-100 pt-6 text-center">
