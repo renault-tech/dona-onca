@@ -125,9 +125,9 @@ function ProductsContent() {
                         <div className="sticky top-24 space-y-8">
                             {/* Categories */}
                             <div>
-                                <h3 className="font-display mb-4 text-sm uppercase tracking-wider text-fg">
+                                <h2 className="font-display mb-4 text-sm uppercase tracking-wider text-fg">
                                     Categorias
-                                </h3>
+                                </h2>
                                 <div className="space-y-2">
                                     <button
                                         onClick={() => setSelectedCategory('Todos')}
@@ -150,9 +150,9 @@ function ProductsContent() {
                             {/* Sizes */}
                             {allSizes.length > 0 && (
                                 <div>
-                                    <h3 className="font-display mb-4 text-sm uppercase tracking-wider text-fg">
+                                    <h2 className="font-display mb-4 text-sm uppercase tracking-wider text-fg">
                                         Tamanhos
-                                    </h3>
+                                    </h2>
                                     <div className="flex flex-wrap gap-2">
                                         {allSizes.map(size => (
                                             <button
@@ -170,9 +170,9 @@ function ProductsContent() {
                             {/* Colors */}
                             {allColors.length > 0 && (
                                 <div>
-                                    <h3 className="font-display mb-4 text-sm uppercase tracking-wider text-fg">
+                                    <h2 className="font-display mb-4 text-sm uppercase tracking-wider text-fg">
                                         Cores
-                                    </h3>
+                                    </h2>
                                     <div className="space-y-2">
                                         {allColors.map(color => (
                                             <button
@@ -217,6 +217,7 @@ function ProductsContent() {
                                 Exibindo {filteredAndSortedProducts.length} produtos
                             </div>
                             <select
+                                aria-label="Ordenar produtos"
                                 value={sortBy}
                                 onChange={(e) => setSortBy(e.target.value as SortOption)}
                                 className="rounded-xl border border-white/20 bg-black/40 px-4 py-2 text-sm text-white focus:border-[#d6008b] focus:outline-none"
