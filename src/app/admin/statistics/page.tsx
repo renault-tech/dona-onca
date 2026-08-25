@@ -1,12 +1,97 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useProducts } from '@/contexts/ProductContext';
+import { supabase } from '@/lib/supabase';
 
 type DateFilter = '7d' | '30d' | '90d' | '12m';
 type ChartView = 'revenue' | 'orders' | 'customers';
 type AnalysisView = 'category' | 'products' | 'customers';
+
+interface OrderItem {
+    productId: number;
+    productName: string;
+    quantity: number;
+    price: number;
+}
+
+interface OrderRow {
+    id: string;
+    user_id: string;
+    items: OrderItem[];
+    total: number;
+    status: string;
+    created_at: string;
+}
+
+// Pedidos cancelados/devolvidos não contam como receita nem como venda real --
+// mesmo critério já usado em /admin/faturamento (.not('status', 'in', ...)).
+const CANCELLED_STATUSES = new Set(['Cancelado', 'Devolvido']);
+
+const WEEKDAY_LABELS = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
+const MONTH_LABELS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+
+function startOfDay(d: Date) {
+    const c = new Date(d);
+    c.setHours(0, 0, 0, 0);
+    return c;
+}
+
+/** Últimos `days` dias (hoje incluso), somando o total de pedidos válidos por dia. */
+function dailySeries(orders: OrderRow[], days: number, valueFn: (os: OrderRow[]) => number) {
+    const today = startOfDay(new Date());
+    const points: { label: string; value: number }[] = [];
+    for (let i = days - 1; i >= 0; i--) {
+        const day = new Date(today);
+        day.setDate(day.getDate() - i);
+        const next = new Date(day);
+        next.setDate(next.getDate() + 1);
+        const dayOrders = orders.filter(o => {
+            const t = new Date(o.created_at);
+            return t >= day && t < next;
+        });
+        points.push({ label: WEEKDAY_LABELS[day.getDay()], value: valueFn(dayOrders) });
+    }
+    return points;
+}
+
+/** Últimos 12 meses (mês atual incluso). */
+function monthlySeries(orders: OrderRow[], valueFn: (os: OrderRow[]) => number) {
+    const now = new Date();
+    const points: { label: string; value: number }[] = [];
+    for (let i = 11; i >= 0; i--) {
+        const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
+        const monthOrders = orders.filter(o => {
+            const t = new Date(o.created_at);
+            return t >= monthStart && t < monthEnd;
+        });
+        points.push({ label: MONTH_LABELS[monthStart.getMonth()], value: valueFn(monthOrders) });
+    }
+    return points;
+}
+
+function periodStart(filter: DateFilter): Date {
+    const d = new Date();
+    if (filter === '7d') d.setDate(d.getDate() - 7);
+    else if (filter === '30d') d.setDate(d.getDate() - 30);
+    else if (filter === '90d') d.setDate(d.getDate() - 90);
+    else d.setMonth(d.getMonth() - 12);
+    return d;
+}
+
+function formatChange(current: number, previous: number): string {
+    if (previous === 0) return current > 0 ? 'novo' : '0%';
+    const pct = ((current - previous) / previous) * 100;
+    const sign = pct >= 0 ? '+' : '';
+    return `${sign}${pct.toFixed(0)}%`;
+}
+
+function toCsvValue(value: string | number): string {
+    const s = String(value);
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
 
 // Tooltip Component
 function Tooltip({ text }: { text: string }) {
@@ -30,56 +115,11 @@ function Tooltip({ text }: { text: string }) {
     );
 }
 
-// Mock data
-const mockData = {
-    revenue: {
-        '7d': { total: 3250, change: '+12%', data: [420, 380, 520, 480, 550, 420, 480] },
-        '30d': { total: 12450, change: '+8%', data: [380, 420, 350, 480, 520, 390, 450, 410, 480, 520, 380, 450, 490, 510, 420, 380, 520, 480, 550, 420, 480, 390, 410, 450, 520, 480, 390, 420, 450, 480] },
-        '90d': { total: 38500, change: '+15%', data: [] },
-        '12m': { total: 142000, change: '+23%', data: [8500, 9200, 7800, 11500, 13200, 15800, 12450, 9800, 11200, 13500, 14800, 14250] },
-    },
-    orders: {
-        '7d': { total: 42, change: '+5', data: [5, 7, 4, 8, 6, 7, 5] },
-        '30d': { total: 156, change: '+12', data: [4, 6, 5, 7, 8, 5, 6, 4, 7, 8, 5, 6, 7, 8, 5, 4, 7, 6, 8, 5, 6, 4, 5, 6, 7, 6, 5, 5, 6, 7] },
-        '90d': { total: 450, change: '+45', data: [] },
-        '12m': { total: 1850, change: '+320', data: [120, 135, 142, 155, 168, 175, 156, 140, 152, 165, 172, 170] },
-    },
-    customers: {
-        '7d': { total: 12, change: '+3', data: [1, 2, 1, 3, 2, 2, 1] },
-        '30d': { total: 89, change: '+15', data: [] },
-        '90d': { total: 245, change: '+68', data: [] },
-        '12m': { total: 890, change: '+420', data: [55, 62, 68, 75, 82, 90, 89, 72, 78, 85, 92, 92] },
-    },
-    conversion: { rate: 3.2, change: '+0.5%' },
-    avgTicket: { value: 156.80, change: '+8%' },
-};
-
-const categoryBreakdown = [
-    { name: 'Calcinhas', revenue: 4580, orders: 52, percent: 35 },
-    { name: 'Sutiãs', revenue: 3640, orders: 41, percent: 28 },
-    { name: 'Conjuntos', revenue: 2860, orders: 28, percent: 22 },
-    { name: 'Bodies', revenue: 1300, orders: 13, percent: 10 },
-    { name: 'Outros', revenue: 650, orders: 8, percent: 5 },
-];
-
-const topSellingProducts = [
-    { name: 'Calcinha Renda Luxo', sales: 45, revenue: 4050 },
-    { name: 'Conjunto Sexy Night', sales: 32, revenue: 6400 },
-    { name: 'Sutiã Push-Up Premium', sales: 28, revenue: 4200 },
-    { name: 'Body Elegance', sales: 22, revenue: 4400 },
-    { name: 'Camisola Seda', sales: 18, revenue: 2700 },
-];
-
-const topCustomers = [
-    { name: 'Maria Silva', orders: 12, revenue: 2890 },
-    { name: 'Ana Costa', orders: 8, revenue: 1450 },
-    { name: 'Carla Mendes', orders: 6, revenue: 980 },
-    { name: 'Julia Santos', orders: 5, revenue: 750 },
-    { name: 'Paula Lima', orders: 4, revenue: 620 },
-];
-
 export default function StatisticsPage() {
     const { products } = useProducts();
+    const [orders, setOrders] = useState<OrderRow[]>([]);
+    const [profilesMap, setProfilesMap] = useState<Record<string, string>>({});
+    const [ordersLoading, setOrdersLoading] = useState(true);
     const [dateFilter, setDateFilter] = useState<DateFilter>('30d');
     const [chartView, setChartView] = useState<ChartView>('revenue');
     const [analysisView, setAnalysisView] = useState<AnalysisView>('category');
@@ -96,24 +136,141 @@ export default function StatisticsPage() {
     useEffect(() => {
         const adjustForScreen = () => {
             const width = window.innerWidth;
-            if (width >= 2560) {
-                setZoom(115);
-            } else if (width >= 1920) {
-                setZoom(100);
-            } else if (width >= 1440) {
-                setZoom(95);
-            } else {
-                setZoom(90);
-            }
+            if (width >= 2560) setZoom(115);
+            else if (width >= 1920) setZoom(100);
+            else if (width >= 1440) setZoom(95);
+            else setZoom(90);
         };
         adjustForScreen();
         window.addEventListener('resize', adjustForScreen);
         return () => window.removeEventListener('resize', adjustForScreen);
     }, []);
 
-    const currentRevenue = mockData.revenue[dateFilter] || mockData.revenue['30d'];
-    const currentOrders = mockData.orders[dateFilter] || mockData.orders['30d'];
-    const currentCustomers = mockData.customers[dateFilter] || mockData.customers['30d'];
+    useEffect(() => {
+        const fetchOrders = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('orders')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                if (error) throw error;
+
+                const rows = (data || []) as OrderRow[];
+                setOrders(rows);
+
+                const userIds = [...new Set(rows.map(o => o.user_id).filter(Boolean))];
+                if (userIds.length > 0) {
+                    const { data: profiles } = await supabase
+                        .from('profiles')
+                        .select('id, full_name, email')
+                        .in('id', userIds);
+                    const map: Record<string, string> = {};
+                    (profiles || []).forEach((p) => {
+                        map[p.id] = p.full_name || p.email || 'Cliente';
+                    });
+                    setProfilesMap(map);
+                }
+            } catch (error) {
+                console.error('Error fetching orders for statistics:', error);
+            } finally {
+                setOrdersLoading(false);
+            }
+        };
+        fetchOrders();
+    }, []);
+
+    const validOrders = useMemo(
+        () => orders.filter(o => !CANCELLED_STATUSES.has(o.status)),
+        [orders]
+    );
+
+    const stats = useMemo(() => {
+        const start = periodStart(dateFilter);
+        const periodLengthMs = Date.now() - start.getTime();
+        const prevStart = new Date(start.getTime() - periodLengthMs);
+
+        const inPeriod = validOrders.filter(o => new Date(o.created_at) >= start);
+        const inPrevPeriod = validOrders.filter(o => {
+            const t = new Date(o.created_at);
+            return t >= prevStart && t < start;
+        });
+
+        const revenueTotal = inPeriod.reduce((s, o) => s + o.total, 0);
+        const revenuePrev = inPrevPeriod.reduce((s, o) => s + o.total, 0);
+        const ordersTotal = inPeriod.length;
+        const ordersPrev = inPrevPeriod.length;
+
+        // "Novo cliente" = primeira compra (entre todos os pedidos válidos) caiu dentro do período.
+        const firstOrderByUser = new Map<string, number>();
+        for (const o of validOrders) {
+            const t = new Date(o.created_at).getTime();
+            const existing = firstOrderByUser.get(o.user_id);
+            if (existing === undefined || t < existing) firstOrderByUser.set(o.user_id, t);
+        }
+        const newCustomers = [...firstOrderByUser.values()].filter(t => t >= start.getTime()).length;
+        const newCustomersPrev = [...firstOrderByUser.values()].filter(t => t >= prevStart.getTime() && t < start.getTime()).length;
+
+        const avgTicket = ordersTotal > 0 ? revenueTotal / ordersTotal : 0;
+        const avgTicketPrev = ordersPrev > 0 ? revenuePrev / ordersPrev : 0;
+
+        // Categoria: cruza item.productId com o catálogo atual para saber a categoria.
+        const categoryMap = new Map<string, { revenue: number; orders: number }>();
+        for (const o of inPeriod) {
+            for (const item of o.items || []) {
+                const product = products.find(p => p.id === item.productId);
+                const category = product?.category || 'Outros';
+                const entry = categoryMap.get(category) || { revenue: 0, orders: 0 };
+                entry.revenue += item.price * item.quantity;
+                entry.orders += item.quantity;
+                categoryMap.set(category, entry);
+            }
+        }
+        const categoryRevenueTotal = [...categoryMap.values()].reduce((s, c) => s + c.revenue, 0);
+        const categoryBreakdown = [...categoryMap.entries()]
+            .map(([name, v]) => ({
+                name,
+                revenue: v.revenue,
+                orders: v.orders,
+                percent: categoryRevenueTotal > 0 ? Math.round((v.revenue / categoryRevenueTotal) * 100) : 0,
+            }))
+            .sort((a, b) => b.revenue - a.revenue);
+
+        // Top produtos
+        const productMap = new Map<number, { name: string; sales: number; revenue: number }>();
+        for (const o of inPeriod) {
+            for (const item of o.items || []) {
+                const entry = productMap.get(item.productId) || { name: item.productName, sales: 0, revenue: 0 };
+                entry.sales += item.quantity;
+                entry.revenue += item.price * item.quantity;
+                productMap.set(item.productId, entry);
+            }
+        }
+        const topProducts = [...productMap.values()].sort((a, b) => b.revenue - a.revenue).slice(0, 5);
+
+        // Top clientes
+        const customerMap = new Map<string, { orders: number; revenue: number }>();
+        for (const o of inPeriod) {
+            const entry = customerMap.get(o.user_id) || { orders: 0, revenue: 0 };
+            entry.orders += 1;
+            entry.revenue += o.total;
+            customerMap.set(o.user_id, entry);
+        }
+        const topCustomers = [...customerMap.entries()]
+            .map(([userId, v]) => ({ name: profilesMap[userId] || 'Cliente', ...v }))
+            .sort((a, b) => b.revenue - a.revenue)
+            .slice(0, 5);
+
+        return {
+            revenue: { total: revenueTotal, change: formatChange(revenueTotal, revenuePrev) },
+            orders: { total: ordersTotal, change: formatChange(ordersTotal, ordersPrev) },
+            newCustomers: { total: newCustomers, change: formatChange(newCustomers, newCustomersPrev) },
+            avgTicket: { value: avgTicket, change: formatChange(avgTicket, avgTicketPrev) },
+            categoryBreakdown,
+            topProducts,
+            topCustomers,
+            inPeriod,
+        };
+    }, [validOrders, dateFilter, products, profilesMap]);
 
     const productStats = {
         total: products.length,
@@ -130,9 +287,9 @@ export default function StatisticsPage() {
     };
 
     const analysisLabels = {
-        category: { title: '🏷️ Por Categoria', data: categoryBreakdown },
-        products: { title: '🏆 Top Produtos', data: topSellingProducts },
-        customers: { title: '👑 Top Clientes', data: topCustomers },
+        category: { title: '🏷️ Por Categoria', data: stats.categoryBreakdown },
+        products: { title: '🏆 Top Produtos', data: stats.topProducts },
+        customers: { title: '👑 Top Clientes', data: stats.topCustomers },
     };
 
     const nextChart = () => {
@@ -152,17 +309,58 @@ export default function StatisticsPage() {
         setAnalysisView(views[(views.indexOf(analysisView) - 1 + views.length) % views.length]);
     };
 
-    const getCurrentChartData = () => {
-        switch (chartView) {
-            case 'revenue': return dateFilter === '12m' ? mockData.revenue['12m'].data : mockData.revenue['7d'].data;
-            case 'orders': return dateFilter === '12m' ? mockData.orders['12m'].data : mockData.orders['7d'].data;
-            case 'customers': return dateFilter === '12m' ? mockData.customers['12m'].data : mockData.customers['7d'].data;
-        }
-    };
+    // O gráfico sempre mostra a janela de 7 dias ou 12 meses (nunca 30/90 dias
+    // detalhado) -- simplificação que já existia na versão anterior da tela,
+    // mantida aqui, só que agora com dados reais.
+    const chartData = useMemo(() => {
+        const valueFn = (os: OrderRow[]) => {
+            switch (chartView) {
+                case 'revenue': return os.reduce((s, o) => s + o.total, 0);
+                case 'orders': return os.length;
+                case 'customers': {
+                    const ids = new Set(os.map(o => o.user_id));
+                    return ids.size;
+                }
+            }
+        };
+        return dateFilter === '12m'
+            ? monthlySeries(validOrders, valueFn)
+            : dailySeries(validOrders, 7, valueFn);
+    }, [validOrders, dateFilter, chartView]);
 
     const chartColors = { revenue: '#c2185b', orders: '#1976d2', customers: '#f57c00' };
+    const maxChartValue = Math.max(1, ...chartData.map(p => p.value));
 
     const scaleFactor = zoom / 100;
+
+    const handleExportCsv = () => {
+        const rows = [
+            ['Pedido', 'Cliente', 'Data', 'Total', 'Status'],
+            ...stats.inPeriod.map(o => [
+                o.id,
+                profilesMap[o.user_id] || 'Cliente',
+                new Date(o.created_at).toLocaleDateString('pt-BR'),
+                o.total.toFixed(2).replace('.', ','),
+                o.status,
+            ]),
+        ];
+        const csv = rows.map(r => r.map(toCsvValue).join(',')).join('\n');
+        const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `pedidos-${dateFilter}-${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
+    if (ordersLoading) {
+        return (
+            <div className="flex min-h-screen items-center justify-center bg-gray-50">
+                <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand-600 border-t-transparent" />
+            </div>
+        );
+    }
 
     return (
         <>
@@ -223,7 +421,11 @@ export default function StatisticsPage() {
                                         </button>
                                     ))}
                                 </div>
-                                <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-600 text-white text-sm font-medium hover:bg-brand-700">
+                                <button
+                                    onClick={handleExportCsv}
+                                    disabled={stats.inPeriod.length === 0}
+                                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-600 text-white text-sm font-medium hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
                                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                     </svg>
@@ -244,46 +446,38 @@ export default function StatisticsPage() {
                     }}
                 >
                     {/* Main KPIs with Tooltips */}
-                    <div className="grid grid-cols-2 gap-6 lg:grid-cols-5 mb-10">
+                    <div className="grid grid-cols-2 gap-6 lg:grid-cols-4 mb-10">
                         <div className="rounded-2xl bg-gradient-to-br from-pink-500 to-rose-600 p-5 text-white">
                             <div className="flex items-start justify-between">
                                 <p className="text-sm opacity-90">Faturamento</p>
-                                <Tooltip text="Total de receita gerada. Monitore para avaliar a saúde financeira do negócio." />
+                                <Tooltip text="Total de receita gerada (exclui pedidos cancelados/devolvidos). Monitore para avaliar a saúde financeira do negócio." />
                             </div>
-                            <p className="text-2xl font-bold mt-1">R$ {currentRevenue.total.toLocaleString('pt-BR')}</p>
-                            <p className="text-xs opacity-80 mt-1">{currentRevenue.change} vs anterior</p>
+                            <p className="text-2xl font-bold mt-1">R$ {stats.revenue.total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                            <p className="text-xs opacity-80 mt-1">{stats.revenue.change} vs período anterior</p>
                         </div>
                         <div className="rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 p-5 text-white">
                             <div className="flex items-start justify-between">
                                 <p className="text-sm opacity-90">Pedidos</p>
-                                <Tooltip text="Quantidade de pedidos. Acompanhe a demanda e prepare seu estoque." />
+                                <Tooltip text="Quantidade de pedidos válidos. Acompanhe a demanda e prepare seu estoque." />
                             </div>
-                            <p className="text-2xl font-bold mt-1">{currentOrders.total}</p>
-                            <p className="text-xs opacity-80 mt-1">{currentOrders.change} vs anterior</p>
+                            <p className="text-2xl font-bold mt-1">{stats.orders.total}</p>
+                            <p className="text-xs opacity-80 mt-1">{stats.orders.change} vs período anterior</p>
                         </div>
                         <div className="rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600 p-5 text-white">
                             <div className="flex items-start justify-between">
                                 <p className="text-sm opacity-90">Novos Clientes</p>
-                                <Tooltip text="Clientes que compraram pela primeira vez. Indica crescimento da base." />
+                                <Tooltip text="Clientes cuja primeira compra caiu neste período. Indica crescimento da base." />
                             </div>
-                            <p className="text-2xl font-bold mt-1">{currentCustomers.total}</p>
-                            <p className="text-xs opacity-80 mt-1">{currentCustomers.change} vs anterior</p>
+                            <p className="text-2xl font-bold mt-1">{stats.newCustomers.total}</p>
+                            <p className="text-xs opacity-80 mt-1">{stats.newCustomers.change} vs período anterior</p>
                         </div>
                         <div className="rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 p-5 text-white">
                             <div className="flex items-start justify-between">
                                 <p className="text-sm opacity-90">Ticket Médio</p>
                                 <Tooltip text="Valor médio por pedido = Faturamento ÷ Pedidos. Quanto maior, melhor!" />
                             </div>
-                            <p className="text-2xl font-bold mt-1">R$ {mockData.avgTicket.value.toFixed(2).replace('.', ',')}</p>
-                            <p className="text-xs opacity-80 mt-1">{mockData.avgTicket.change} vs anterior</p>
-                        </div>
-                        <div className="rounded-2xl bg-gradient-to-br from-purple-500 to-violet-600 p-5 text-white">
-                            <div className="flex items-start justify-between">
-                                <p className="text-sm opacity-90">Taxa Conversão</p>
-                                <Tooltip text="% de visitantes que compraram. Acima de 2% é considerado bom para e-commerce." />
-                            </div>
-                            <p className="text-2xl font-bold mt-1">{mockData.conversion.rate}%</p>
-                            <p className="text-xs opacity-80 mt-1">{mockData.conversion.change} vs anterior</p>
+                            <p className="text-2xl font-bold mt-1">R$ {stats.avgTicket.value.toFixed(2).replace('.', ',')}</p>
+                            <p className="text-xs opacity-80 mt-1">{stats.avgTicket.change} vs período anterior</p>
                         </div>
                     </div>
 
@@ -293,6 +487,9 @@ export default function StatisticsPage() {
                             <div className="flex items-center gap-2">
                                 <h3 className="font-semibold text-gray-900 text-lg">{chartLabels[chartView].title}</h3>
                                 <Tooltip text={chartLabels[chartView].tip} />
+                                <span className="text-xs text-gray-400">
+                                    ({dateFilter === '12m' ? 'últimos 12 meses' : 'últimos 7 dias'})
+                                </span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <button onClick={prevChart} className="p-2 rounded-lg hover:bg-gray-100 text-gray-500">
@@ -304,23 +501,22 @@ export default function StatisticsPage() {
                                 </button>
                             </div>
                         </div>
-                        <div className="h-40 flex items-end gap-1 overflow-x-auto pb-2">
-                            {getCurrentChartData()?.map((value, i) => {
-                                const data = getCurrentChartData() || [];
-                                const maxValue = Math.max(...data);
-                                return (
+                        {chartData.every(p => p.value === 0) ? (
+                            <p className="py-10 text-center text-sm text-gray-400">Nenhum pedido válido nesse intervalo ainda.</p>
+                        ) : (
+                            <div className="h-40 flex items-end gap-1 overflow-x-auto pb-2">
+                                {chartData.map((point, i) => (
                                     <div key={i} className="flex-1 min-w-[20px] flex flex-col items-center gap-1">
                                         <div
                                             className="w-full rounded-t hover:opacity-80 transition-opacity"
-                                            style={{ height: `${(value / maxValue) * 100}%`, minHeight: 4, backgroundColor: chartColors[chartView] }}
+                                            style={{ height: `${(point.value / maxChartValue) * 100}%`, minHeight: 4, backgroundColor: chartColors[chartView] }}
+                                            title={String(point.value)}
                                         />
-                                        <span className="text-[10px] text-gray-400">
-                                            {dateFilter === '12m' ? ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'][i] : ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'][i]}
-                                        </span>
+                                        <span className="text-[10px] text-gray-400">{point.label}</span>
                                     </div>
-                                );
-                            })}
-                        </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     {/* Two Column Analysis with Navigation */}
@@ -341,40 +537,44 @@ export default function StatisticsPage() {
                                     </button>
                                 </div>
                             </div>
-                            <div className="max-h-48 overflow-y-auto space-y-2">
-                                {analysisView === 'category' && categoryBreakdown.map((cat, i) => (
-                                    <div key={i} className="flex items-center gap-3">
-                                        <div className="w-20 text-sm text-gray-700 truncate">{cat.name}</div>
-                                        <div className="flex-1">
-                                            <div className="h-5 bg-gray-100 rounded-full overflow-hidden">
-                                                <div className="h-full bg-gradient-to-r from-brand-500 to-brand-400 rounded-full" style={{ width: `${cat.percent}%` }} />
+                            {analysisLabels[analysisView].data.length === 0 ? (
+                                <p className="py-6 text-center text-sm text-gray-400">Sem dados nesse período ainda.</p>
+                            ) : (
+                                <div className="max-h-48 overflow-y-auto space-y-2">
+                                    {analysisView === 'category' && stats.categoryBreakdown.map((cat, i) => (
+                                        <div key={i} className="flex items-center gap-3">
+                                            <div className="w-20 text-sm text-gray-700 truncate">{cat.name}</div>
+                                            <div className="flex-1">
+                                                <div className="h-5 bg-gray-100 rounded-full overflow-hidden">
+                                                    <div className="h-full bg-gradient-to-r from-brand-500 to-brand-400 rounded-full" style={{ width: `${cat.percent}%` }} />
+                                                </div>
                                             </div>
+                                            <div className="w-12 text-right text-sm font-semibold text-gray-900">{cat.percent}%</div>
+                                            <div className="w-20 text-right text-xs text-gray-500">R$ {cat.revenue.toLocaleString('pt-BR')}</div>
                                         </div>
-                                        <div className="w-12 text-right text-sm font-semibold text-gray-900">{cat.percent}%</div>
-                                        <div className="w-20 text-right text-xs text-gray-500">R$ {cat.revenue.toLocaleString('pt-BR')}</div>
-                                    </div>
-                                ))}
-                                {analysisView === 'products' && topSellingProducts.map((product, i) => (
-                                    <Link key={i} href="/admin/products" className="flex items-center gap-3 p-2 rounded-xl bg-gray-50 hover:bg-gray-100">
-                                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-600">{i + 1}</span>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-medium text-gray-900 truncate">{product.name}</p>
-                                            <p className="text-xs text-gray-500">{product.sales} vendas</p>
-                                        </div>
-                                        <p className="text-sm font-bold text-gray-900">R$ {product.revenue.toLocaleString('pt-BR')}</p>
-                                    </Link>
-                                ))}
-                                {analysisView === 'customers' && topCustomers.map((customer, i) => (
-                                    <Link key={i} href="/admin/customers" className="flex items-center gap-3 p-2 rounded-xl bg-gray-50 hover:bg-gray-100">
-                                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-orange-100 text-xs font-bold text-orange-600">{i + 1}</span>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-medium text-gray-900 truncate">{customer.name}</p>
-                                            <p className="text-xs text-gray-500">{customer.orders} pedidos</p>
-                                        </div>
-                                        <p className="text-sm font-bold text-gray-900">R$ {customer.revenue.toLocaleString('pt-BR')}</p>
-                                    </Link>
-                                ))}
-                            </div>
+                                    ))}
+                                    {analysisView === 'products' && stats.topProducts.map((product, i) => (
+                                        <Link key={i} href="/admin/products" className="flex items-center gap-3 p-2 rounded-xl bg-gray-50 hover:bg-gray-100">
+                                            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-600">{i + 1}</span>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-medium text-gray-900 truncate">{product.name}</p>
+                                                <p className="text-xs text-gray-500">{product.sales} vendas</p>
+                                            </div>
+                                            <p className="text-sm font-bold text-gray-900">R$ {product.revenue.toLocaleString('pt-BR')}</p>
+                                        </Link>
+                                    ))}
+                                    {analysisView === 'customers' && stats.topCustomers.map((customer, i) => (
+                                        <Link key={i} href="/admin/customers" className="flex items-center gap-3 p-2 rounded-xl bg-gray-50 hover:bg-gray-100">
+                                            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-orange-100 text-xs font-bold text-orange-600">{i + 1}</span>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-medium text-gray-900 truncate">{customer.name}</p>
+                                                <p className="text-xs text-gray-500">{customer.orders} pedidos</p>
+                                            </div>
+                                            <p className="text-sm font-bold text-gray-900">R$ {customer.revenue.toLocaleString('pt-BR')}</p>
+                                        </Link>
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
                         {/* Product Stats */}
