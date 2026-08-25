@@ -9,7 +9,6 @@ import FavoriteButton from '@/components/FavoriteButton';
 import Reveal from '@/components/motion/Reveal';
 import MarqueeRibbon from '@/components/shell/MarqueeRibbon';
 import TrustBand from '@/components/shell/TrustBand';
-import OncaMark from '@/components/brand/OncaMark';
 
 function NewsletterForm() {
     const [email, setEmail] = useState('');
@@ -144,7 +143,14 @@ export default function HomeView() {
                                         />
                                     ) : (
                                         <div className="absolute inset-0 flex items-center justify-center bg-bg-warm">
-                                            <OncaMark className="h-24 w-24 text-accent opacity-40" />
+                                            <Image
+                                                src="/logo.png"
+                                                alt=""
+                                                width={96}
+                                                height={96}
+                                                className="h-24 w-24 object-contain opacity-30"
+                                                aria-hidden
+                                            />
                                         </div>
                                     )}
                                     <div
