@@ -183,7 +183,7 @@ export default function StatisticsPage() {
                 }
             `}</style>
 
-            <div className="min-h-screen bg-gray-50 overflow-x-hidden">
+            <div className="min-h-screen bg-gray-50 overflow-x-hidden text-gray-900">
                 {/* Header */}
                 <div className="border-b border-gray-200 bg-white">
                     <div className="w-full px-6 xl:px-12 2xl:px-16 py-5">

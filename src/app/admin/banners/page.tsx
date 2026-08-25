@@ -83,7 +83,7 @@ export default function BannersAdminPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-20">
+        <div className="min-h-screen bg-gray-50 pb-20 text-gray-900">
             {/* Header */}
             <div className="sticky top-0 z-30 border-b border-gray-200 bg-white/80 backdrop-blur-md">
                 <div className="mx-auto max-w-4xl px-4 py-4">

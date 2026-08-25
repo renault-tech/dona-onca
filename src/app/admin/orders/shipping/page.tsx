@@ -67,7 +67,7 @@ export default function ShippingConfigPage() {
     const inputClass = "w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500";
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-12">
+        <div className="min-h-screen bg-gray-50 pb-12 text-gray-900">
             <div className="border-b border-gray-200 bg-white">
                 <div className="mx-auto max-w-4xl px-4 py-8">
                     <div className="flex items-center gap-4">

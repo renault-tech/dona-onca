@@ -9,7 +9,7 @@ export default function SettingsAdminPage() {
     const [freeShipping, setFreeShipping] = useState(199.90);
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-12">
+        <div className="min-h-screen bg-gray-50 pb-12 text-gray-900">
             <div className="border-b border-gray-200 bg-white">
                 <div className="mx-auto max-w-7xl px-4 py-8">
                     <div className="flex items-center gap-4">
