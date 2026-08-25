@@ -3,8 +3,11 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import BackButton from '@/components/BackButton';
+import { useProducts } from '@/contexts/ProductContext';
 
 export default function ContatoPage() {
+    const { aboutContent } = useProducts();
+    const { contact } = aboutContent;
     const [form, setForm] = useState({
         name: '',
         email: '',
@@ -80,13 +83,13 @@ export default function ContatoPage() {
                         <div className="rounded-2xl bg-gradient-to-br from-[#1a0510] to-[#0d0308] p-6 border border-[#d6008b]/20">
                             <div className="text-2xl mb-3">📧</div>
                             <h3 className="text-lg font-semibold text-white mb-1">E-mail</h3>
-                            <p className="text-white/60 text-sm">contato@donaonca.com.br</p>
+                            <p className="text-white/60 text-sm">{contact.email}</p>
                         </div>
 
                         <div className="rounded-2xl bg-gradient-to-br from-[#1a0510] to-[#0d0308] p-6 border border-[#d6008b]/20">
                             <div className="text-2xl mb-3">💬</div>
                             <h3 className="text-lg font-semibold text-white mb-1">WhatsApp</h3>
-                            <p className="text-white/60 text-sm">(11) 99999-9999</p>
+                            <p className="text-white/60 text-sm">{contact.whatsapp}</p>
                         </div>
 
                         <div className="rounded-2xl bg-gradient-to-br from-[#1a0510] to-[#0d0308] p-6 border border-[#d6008b]/20">

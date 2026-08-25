@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { categories } from '@/contexts/ProductContext';
+import { useProducts } from '@/contexts/ProductContext';
 import MiniCartDrawer from '@/components/cart/MiniCartDrawer';
 import SearchDialog from '@/components/search/SearchDialog';
 
@@ -22,6 +22,7 @@ export default function Navbar() {
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const { itemCount, openDrawer } = useCart();
     const { user, isAdmin } = useAuth();
+    const { categories } = useProducts();
     const categoriesRef = useRef<HTMLDivElement>(null);
 
     // Dropdown de categorias acessível: fecha ao clicar fora ou pressionar Escape.

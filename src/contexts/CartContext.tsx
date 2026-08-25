@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useProducts } from '@/contexts/ProductContext';
 
 export interface CartItem {
     id: number;
@@ -36,6 +37,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const [items, setItems] = useState<CartItem[]>([]);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const { user } = useAuth();
+    const { generalSettings } = useProducts();
 
     // Generate storage key based on user ID
     const getStorageKey = useCallback(() => {
@@ -100,7 +102,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
     const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    const shipping = subtotal >= 199 ? 0 : subtotal > 0 ? 19.90 : 0;
+    const shipping = subtotal >= generalSettings.freeShippingThreshold ? 0 : subtotal > 0 ? 19.90 : 0;
     const total = subtotal + shipping;
 
     return (

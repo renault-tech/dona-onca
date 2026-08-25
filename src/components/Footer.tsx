@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { useProducts } from '@/contexts/ProductContext';
 
 interface FooterSettings {
     facebook_enabled: boolean;
@@ -39,6 +40,7 @@ const defaultSettings: FooterSettings = {
 
 export default function Footer() {
     const [settings, setSettings] = useState<FooterSettings>(defaultSettings);
+    const { generalSettings } = useProducts();
 
     useEffect(() => {
         const loadSettings = async () => {
@@ -109,7 +111,7 @@ export default function Footer() {
                                     style={{ filter: 'drop-shadow(0 0 8px rgba(214, 0, 139, 0.5))' }}
                                 />
                             </div>
-                            <span className="font-display text-xl italic text-fg">Dona Onça</span>
+                            <span className="font-display text-xl italic text-fg">{generalSettings.shopName}</span>
                         </div>
                         <p className="text-xs uppercase tracking-[0.2em] text-fg-subtle">
                             Sensualidade em cada detalhe
@@ -229,7 +231,7 @@ export default function Footer() {
                 {/* Copyright + discrição */}
                 <div className="mt-12 flex flex-col items-center gap-2 border-t border-border pt-8 text-center text-xs text-fg-subtle">
                     <p>Entrega discreta · fatura com nome neutro · compra sigilosa</p>
-                    <p>© {new Date().getFullYear()} Dona Onça. Todos os direitos reservados.</p>
+                    <p>© {new Date().getFullYear()} {generalSettings.shopName}. Todos os direitos reservados.</p>
                 </div>
             </div>
         </footer>

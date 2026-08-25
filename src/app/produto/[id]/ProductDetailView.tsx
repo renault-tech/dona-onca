@@ -21,7 +21,7 @@ interface ProductDetailViewProps {
 export default function ProductDetailView({ initialProduct }: ProductDetailViewProps) {
     const params = useParams();
     const router = useRouter();
-    const { getProductById } = useProducts();
+    const { getProductById, generalSettings } = useProducts();
     const { addItem } = useCart();
     const product = initialProduct ?? getProductById(Number(params.id));
 
@@ -95,7 +95,7 @@ export default function ProductDetailView({ initialProduct }: ProductDetailViewP
         setShippingResult(null);
         setLoadingCep(true);
         try {
-            const result = await calculateShippingByCep(cep, product.price * quantity);
+            const result = await calculateShippingByCep(cep, product.price * quantity, generalSettings.freeShippingThreshold);
             setShippingResult(result);
         } catch {
             setShippingError('CEP inválido ou não encontrado.');
@@ -324,7 +324,7 @@ export default function ProductDetailView({ initialProduct }: ProductDetailViewP
                         {/* Confiança */}
                         <div className="mb-6 space-y-2.5 rounded-onca surface p-4">
                             {[
-                                'Frete grátis para compras acima de R$ 199',
+                                `Frete grátis para compras acima de R$ ${generalSettings.freeShippingThreshold.toFixed(2).replace('.', ',')}`,
                                 'Troca e devolução em até 30 dias',
                                 'Embalagem discreta, sem identificação do conteúdo',
                             ].map((line) => (

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useProducts } from '@/contexts/ProductContext';
 import { calculateShippingByCep } from '@/lib/shipping';
 import EmptyState from '@/components/ui/EmptyState';
 import OncaRosette from '@/components/brand/OncaRosette';
@@ -12,6 +13,7 @@ import OncaRosette from '@/components/brand/OncaRosette';
 export default function SacolaView() {
     const { items, updateQuantity, removeItem, subtotal, shipping } = useCart();
     const { user, loading: authLoading } = useAuth();
+    const { generalSettings } = useProducts();
     const [cep, setCep] = useState('');
     const [calculatedShipping, setCalculatedShipping] = useState<number | null>(null);
     const [loadingCep, setLoadingCep] = useState(false);
@@ -21,7 +23,7 @@ export default function SacolaView() {
         setShippingError('');
         setLoadingCep(true);
         try {
-            const { value } = await calculateShippingByCep(cep, subtotal);
+            const { value } = await calculateShippingByCep(cep, subtotal, generalSettings.freeShippingThreshold);
             setCalculatedShipping(value);
         } catch {
             setShippingError('CEP inválido ou não encontrado.');
@@ -178,9 +180,9 @@ export default function SacolaView() {
                                 <span className="text-accent">R$ {displayTotal.toFixed(2).replace('.', ',')}</span>
                             </div>
 
-                            {displayShipping > 0 && subtotal > 0 && subtotal < 199 && (
+                            {displayShipping > 0 && subtotal > 0 && subtotal < generalSettings.freeShippingThreshold && (
                                 <p className="mb-4 rounded-onca bg-accent/10 p-3 text-center text-sm text-accent">
-                                    Faltam <strong>R$ {(199 - subtotal).toFixed(2).replace('.', ',')}</strong> para frete grátis!
+                                    Faltam <strong>R$ {(generalSettings.freeShippingThreshold - subtotal).toFixed(2).replace('.', ',')}</strong> para frete grátis!
                                 </p>
                             )}
 

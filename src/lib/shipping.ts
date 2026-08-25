@@ -19,17 +19,17 @@ export async function lookupCepState(cep: string): Promise<string | null> {
     return data.uf as string;
 }
 
-/** Estima o valor do frete por estado, com frete grátis acima de R$ 199. */
-export function estimateShippingByUf(uf: string, subtotal: number): number {
-    if (uf === 'SP') return subtotal >= 199 ? 0 : 15.9;
-    if (['RJ', 'MG', 'ES'].includes(uf)) return subtotal >= 199 ? 0 : 19.9;
-    if (['RS', 'SC', 'PR'].includes(uf)) return subtotal >= 199 ? 0 : 22.9;
-    return subtotal >= 199 ? 0 : 29.9;
+/** Estima o valor do frete por estado, com frete grátis acima do limiar configurado em /admin/site (padrão R$ 199). */
+export function estimateShippingByUf(uf: string, subtotal: number, freeShippingThreshold = 199): number {
+    if (uf === 'SP') return subtotal >= freeShippingThreshold ? 0 : 15.9;
+    if (['RJ', 'MG', 'ES'].includes(uf)) return subtotal >= freeShippingThreshold ? 0 : 19.9;
+    if (['RS', 'SC', 'PR'].includes(uf)) return subtotal >= freeShippingThreshold ? 0 : 22.9;
+    return subtotal >= freeShippingThreshold ? 0 : 29.9;
 }
 
 /** Busca o CEP e já devolve o frete estimado. Lança em CEP inválido. */
-export async function calculateShippingByCep(cep: string, subtotal: number): Promise<ShippingResult> {
+export async function calculateShippingByCep(cep: string, subtotal: number, freeShippingThreshold = 199): Promise<ShippingResult> {
     const uf = await lookupCepState(cep);
     if (!uf) throw new Error('CEP não encontrado');
-    return { value: estimateShippingByUf(uf, subtotal), uf };
+    return { value: estimateShippingByUf(uf, subtotal, freeShippingThreshold), uf };
 }

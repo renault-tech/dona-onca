@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useProducts, categories } from '@/contexts/ProductContext';
+import { useProducts } from '@/contexts/ProductContext';
 import OncaMark from '@/components/brand/OncaMark';
 import Reveal from '@/components/motion/Reveal';
 
@@ -13,7 +13,7 @@ const categoryDescriptions: Record<string, string> = {
 };
 
 export default function CategoriasView() {
-    const { getProductsByCategory, loading } = useProducts();
+    const { getProductsByCategory, loading, categories } = useProducts();
 
     if (loading) {
         return (

@@ -3,7 +3,7 @@
 import { useCallback, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useProducts, categories, Product } from '@/contexts/ProductContext';
+import { useProducts, Product } from '@/contexts/ProductContext';
 import { supabase } from '@/lib/supabase';
 
 interface ImageFile {
@@ -13,7 +13,7 @@ interface ImageFile {
 
 export default function ProductUploadForm() {
     const router = useRouter();
-    const { addProduct } = useProducts();
+    const { addProduct, categories } = useProducts();
 
     const [images, setImages] = useState<ImageFile[]>([]);
     const [isDragOver, setIsDragOver] = useState(false);

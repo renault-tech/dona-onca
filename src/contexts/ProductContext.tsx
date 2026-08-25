@@ -6,7 +6,7 @@ import {
     type Product,
     type AboutContent,
     type HomeBanner,
-    categories,
+    categories as defaultCategories,
     defaultHomeBanners,
     mapRowToProduct,
 } from '@/lib/catalog';
@@ -15,7 +15,20 @@ import {
 // constantes de catálogo a partir deste context. A fonte da verdade
 // agora é @/lib/catalog (server-safe); este arquivo cuida só do estado.
 export type { Product, AboutContent, HomeBanner };
-export { categories };
+
+export interface GeneralSettings {
+    shopName: string;
+    freeShippingThreshold: number;
+}
+
+const defaultGeneralSettings: GeneralSettings = {
+    shopName: 'Dona Onça',
+    freeShippingThreshold: 199,
+};
+
+interface CategoryMutationResult {
+    error: string | null;
+}
 
 interface ProductContextType {
     products: Product[];
@@ -28,10 +41,15 @@ interface ProductContextType {
     sellProduct: (id: number, quantity: number) => Promise<void>;
     restockProduct: (id: number, quantity: number) => Promise<void>;
     categories: string[];
+    addCategory: (name: string) => Promise<CategoryMutationResult>;
+    renameCategory: (oldName: string, newName: string) => Promise<CategoryMutationResult>;
+    deleteCategory: (name: string) => Promise<CategoryMutationResult>;
     aboutContent: AboutContent;
     updateAboutContent: (newContent: Partial<AboutContent>) => Promise<void>;
     homeBanners: HomeBanner[];
     updateHomeBanners: (banners: HomeBanner[]) => Promise<void>;
+    generalSettings: GeneralSettings;
+    updateGeneralSettings: (settings: Partial<GeneralSettings>) => Promise<void>;
 }
 
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
@@ -40,6 +58,8 @@ export function ProductProvider({ children }: { children: ReactNode }) {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [homeBanners, setHomeBanners] = useState<HomeBanner[]>(defaultHomeBanners);
+    const [categories, setCategories] = useState<string[]>(defaultCategories);
+    const [generalSettings, setGeneralSettings] = useState<GeneralSettings>(defaultGeneralSettings);
     const [aboutContent, setAboutContent] = useState<AboutContent>({
         hero: {
             title: 'Sobre a Dona Onça',
@@ -243,6 +263,80 @@ export function ProductProvider({ children }: { children: ReactNode }) {
         }
     };
 
+    const updateCategories = async (next: string[]) => {
+        setCategories(next);
+        try {
+            const { error } = await supabase
+                .from('site_configs')
+                .upsert({ key: 'categories', content: next }, { onConflict: 'key' });
+            if (error) {
+                console.warn('Supabase site_configs table might not exist yet. Using local state only.', error);
+                localStorage.setItem('donaonca-categories', JSON.stringify(next));
+            }
+        } catch (error) {
+            console.error('Error saving categories:', error);
+            localStorage.setItem('donaonca-categories', JSON.stringify(next));
+        }
+    };
+
+    const addCategory = async (name: string): Promise<CategoryMutationResult> => {
+        const trimmed = name.trim();
+        if (!trimmed) return { error: 'Nome não pode ser vazio.' };
+        if (categories.some(c => c.toLowerCase() === trimmed.toLowerCase())) {
+            return { error: 'Já existe uma categoria com esse nome.' };
+        }
+        await updateCategories([...categories, trimmed]);
+        return { error: null };
+    };
+
+    const renameCategory = async (oldName: string, newName: string): Promise<CategoryMutationResult> => {
+        const trimmed = newName.trim();
+        if (!trimmed) return { error: 'Nome não pode ser vazio.' };
+        if (trimmed === oldName) return { error: null };
+        if (categories.some(c => c.toLowerCase() === trimmed.toLowerCase())) {
+            return { error: 'Já existe uma categoria com esse nome.' };
+        }
+        try {
+            const { error } = await supabase
+                .from('products')
+                .update({ category: trimmed })
+                .eq('category', oldName);
+            if (error) throw error;
+        } catch (error) {
+            console.error('Error renaming category on products:', error);
+            return { error: 'Não foi possível atualizar os produtos dessa categoria.' };
+        }
+        await updateCategories(categories.map(c => c === oldName ? trimmed : c));
+        setProducts(prev => prev.map(p => p.category === oldName ? { ...p, category: trimmed } : p));
+        return { error: null };
+    };
+
+    const deleteCategory = async (name: string): Promise<CategoryMutationResult> => {
+        const inUse = products.some(p => p.category === name);
+        if (inUse) {
+            return { error: 'Existem produtos nessa categoria. Mova-os para outra categoria antes de excluir.' };
+        }
+        await updateCategories(categories.filter(c => c !== name));
+        return { error: null };
+    };
+
+    const updateGeneralSettings = async (settings: Partial<GeneralSettings>) => {
+        const updated = { ...generalSettings, ...settings };
+        setGeneralSettings(updated);
+        try {
+            const { error } = await supabase
+                .from('site_configs')
+                .upsert({ key: 'general_settings', content: updated }, { onConflict: 'key' });
+            if (error) {
+                console.warn('Supabase site_configs table might not exist yet. Using local state only.', error);
+                localStorage.setItem('donaonca-general-settings', JSON.stringify(updated));
+            }
+        } catch (error) {
+            console.error('Error saving general settings:', error);
+            localStorage.setItem('donaonca-general-settings', JSON.stringify(updated));
+        }
+    };
+
     useEffect(() => {
         const loadContent = async () => {
             try {
@@ -273,12 +367,44 @@ export function ProductProvider({ children }: { children: ReactNode }) {
                     const localBanners = localStorage.getItem('donaonca-banners');
                     if (localBanners) setHomeBanners(JSON.parse(localBanners));
                 }
+
+                // Load categories
+                const { data: categoriesData } = await supabase
+                    .from('site_configs')
+                    .select('content')
+                    .eq('key', 'categories')
+                    .maybeSingle();
+
+                if (categoriesData && categoriesData.content) {
+                    setCategories(categoriesData.content);
+                } else {
+                    const localCategories = localStorage.getItem('donaonca-categories');
+                    if (localCategories) setCategories(JSON.parse(localCategories));
+                }
+
+                // Load general settings
+                const { data: settingsData } = await supabase
+                    .from('site_configs')
+                    .select('content')
+                    .eq('key', 'general_settings')
+                    .maybeSingle();
+
+                if (settingsData && settingsData.content) {
+                    setGeneralSettings({ ...defaultGeneralSettings, ...settingsData.content });
+                } else {
+                    const localSettings = localStorage.getItem('donaonca-general-settings');
+                    if (localSettings) setGeneralSettings({ ...defaultGeneralSettings, ...JSON.parse(localSettings) });
+                }
             } catch (err) {
                 console.warn('Using default content - persistence layer not ready');
                 const local = localStorage.getItem('donaonca-about');
                 if (local) setAboutContent(JSON.parse(local));
                 const localBanners = localStorage.getItem('donaonca-banners');
                 if (localBanners) setHomeBanners(JSON.parse(localBanners));
+                const localCategories = localStorage.getItem('donaonca-categories');
+                if (localCategories) setCategories(JSON.parse(localCategories));
+                const localSettings = localStorage.getItem('donaonca-general-settings');
+                if (localSettings) setGeneralSettings({ ...defaultGeneralSettings, ...JSON.parse(localSettings) });
             }
         };
         loadContent();
@@ -297,10 +423,15 @@ export function ProductProvider({ children }: { children: ReactNode }) {
                 sellProduct,
                 restockProduct,
                 categories,
+                addCategory,
+                renameCategory,
+                deleteCategory,
                 aboutContent,
                 updateAboutContent,
                 homeBanners,
                 updateHomeBanners,
+                generalSettings,
+                updateGeneralSettings,
             }}
         >
             {children}

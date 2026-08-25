@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { useProducts, categories, Product } from '@/contexts/ProductContext';
+import { useProducts, Product } from '@/contexts/ProductContext';
 import { supabase } from '@/lib/supabase';
 
 interface ImageFile {
@@ -15,7 +15,7 @@ interface ImageFile {
 export default function EditProductPage() {
     const params = useParams();
     const router = useRouter();
-    const { getProductById, updateProduct } = useProducts();
+    const { getProductById, updateProduct, categories } = useProducts();
 
     const [images, setImages] = useState<ImageFile[]>([]);
     const [isDragOver, setIsDragOver] = useState(false);

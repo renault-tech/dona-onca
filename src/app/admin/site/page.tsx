@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 import Image from 'next/image';
 import Link from 'next/link';
 
-type Tab = 'sobre' | 'banners' | 'rodape' | 'dashboard';
+type Tab = 'geral' | 'sobre' | 'banners' | 'rodape' | 'dashboard';
 
 export default function SiteSettingsPage() {
     const { aboutContent, updateAboutContent, homeBanners, updateHomeBanners } = useProducts();
@@ -129,17 +129,28 @@ export default function SiteSettingsPage() {
                             </Link>
                             <h1 className="text-xl font-bold text-white">Configurações do Site</h1>
                         </div>
-                        <button
-                            onClick={handleSave}
-                            disabled={saving}
-                            className="rounded-xl bg-brand-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg transition-all hover:bg-brand-700 disabled:opacity-50"
-                        >
-                            {saving ? 'Salvando...' : 'Salvar Alterações'}
-                        </button>
+                        {activeTab !== 'geral' && activeTab !== 'rodape' && (
+                            <button
+                                onClick={handleSave}
+                                disabled={saving}
+                                className="rounded-xl bg-brand-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg transition-all hover:bg-brand-700 disabled:opacity-50"
+                            >
+                                {saving ? 'Salvando...' : 'Salvar Alterações'}
+                            </button>
+                        )}
                     </div>
 
                     {/* Tabs */}
                     <div className="mt-4 flex gap-2">
+                        <button
+                            onClick={() => setActiveTab('geral')}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'geral'
+                                ? 'bg-brand-600 text-white'
+                                : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                                }`}
+                        >
+                            ⚙️ Geral
+                        </button>
                         <button
                             onClick={() => setActiveTab('sobre')}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'sobre'
@@ -181,7 +192,10 @@ export default function SiteSettingsPage() {
             </div>
 
             <div className="mx-auto max-w-5xl px-4 py-8 admin-form">
-                {activeTab === 'sobre' ? (
+                {activeTab === 'geral' ? (
+                    /* ========== GERAL TAB ========== */
+                    <GeneralSettingsTab />
+                ) : activeTab === 'sobre' ? (
                     /* ========== SOBRE TAB ========== */
                     <div className="space-y-8">
                         {/* Hero Section */}
@@ -934,6 +948,104 @@ function FooterSettingsTab() {
                 <p className="text-sm text-brand-300">
                     <strong>💡 Dica:</strong> As alterações serão refletidas imediatamente no rodapé de todas as páginas após salvar.
                 </p>
+            </div>
+        </div>
+    );
+}
+
+// ========== GERAL TAB COMPONENT ==========
+function GeneralSettingsTab() {
+    const { generalSettings, updateGeneralSettings, aboutContent, updateAboutContent } = useProducts();
+    const [shopName, setShopName] = useState(generalSettings.shopName);
+    const [freeShippingThreshold, setFreeShippingThreshold] = useState(generalSettings.freeShippingThreshold);
+    const [contactEmail, setContactEmail] = useState(aboutContent.contact.email);
+    const [saving, setSaving] = useState(false);
+    const [saved, setSaved] = useState(false);
+
+    // Sincroniza quando o context termina de carregar do Supabase
+    useEffect(() => {
+        setShopName(generalSettings.shopName);
+        setFreeShippingThreshold(generalSettings.freeShippingThreshold);
+    }, [generalSettings]);
+
+    useEffect(() => {
+        setContactEmail(aboutContent.contact.email);
+    }, [aboutContent.contact.email]);
+
+    const handleSave = async () => {
+        setSaving(true);
+        setSaved(false);
+        try {
+            await updateGeneralSettings({ shopName, freeShippingThreshold });
+            if (contactEmail !== aboutContent.contact.email) {
+                await updateAboutContent({ contact: { ...aboutContent.contact, email: contactEmail } });
+            }
+            setSaved(true);
+            setTimeout(() => setSaved(false), 2500);
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    return (
+        <div className="space-y-6">
+            <p className="text-sm text-gray-400">Parâmetros gerais da loja, usados em várias partes do site.</p>
+
+            <section className="rounded-2xl bg-gray-800 p-6 shadow-sm border border-gray-700">
+                <h2 className="mb-6 text-lg font-bold text-white flex items-center gap-2">
+                    <span className="text-2xl">🏪</span> Loja
+                </h2>
+
+                <div className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-2">Nome da Loja</label>
+                        <input
+                            type="text"
+                            value={shopName}
+                            onChange={(e) => setShopName(e.target.value)}
+                            className="w-full rounded-xl border border-gray-600 bg-gray-900 px-4 py-3 text-white focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Exibido na marca do rodapé e nos direitos autorais.</p>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-2">E-mail de Contato</label>
+                        <input
+                            type="email"
+                            value={contactEmail}
+                            onChange={(e) => setContactEmail(e.target.value)}
+                            className="w-full rounded-xl border border-gray-600 bg-gray-900 px-4 py-3 text-white focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Mesmo e-mail exibido em /sobre e /contato (campo compartilhado).</p>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-2">Frete Grátis acima de (R$)</label>
+                        <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold">R$</span>
+                            <input
+                                type="number"
+                                min={0}
+                                step="0.01"
+                                value={freeShippingThreshold}
+                                onChange={(e) => setFreeShippingThreshold(parseFloat(e.target.value) || 0)}
+                                className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-600 bg-gray-900 text-white focus:border-brand-500 focus:ring-brand-500"
+                            />
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">Usado no cálculo de frete da sacola, do checkout e da página de produto.</p>
+                    </div>
+                </div>
+            </section>
+
+            <div className="flex items-center justify-end gap-4">
+                {saved && <span className="text-sm text-green-400">Salvo!</span>}
+                <button
+                    onClick={handleSave}
+                    disabled={saving}
+                    className="rounded-xl bg-brand-600 px-8 py-3 font-bold text-white shadow-lg transition-all hover:bg-brand-700 disabled:opacity-50"
+                >
+                    {saving ? 'Salvando...' : 'Salvar Configurações Gerais'}
+                </button>
             </div>
         </div>
     );

@@ -9,7 +9,7 @@ export interface Product {
     price: number;
     originalPrice?: number;
     description: string;
-    category: 'Lingerie' | 'Pijamas' | 'Praia/Piscina' | 'Sexshop';
+    category: string;
     sizes: string[];
     colors: string[];
     hasSize: boolean;

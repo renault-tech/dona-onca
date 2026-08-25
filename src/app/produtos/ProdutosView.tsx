@@ -3,14 +3,14 @@
 import Image from 'next/image';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useState, Suspense, useCallback } from 'react';
-import { useProducts, categories } from '@/contexts/ProductContext';
+import { useProducts } from '@/contexts/ProductContext';
 import ProductCard from '@/components/product/ProductCard';
 import EmptyState from '@/components/ui/EmptyState';
 
 type SortOption = 'newest' | 'price-low' | 'price-high' | 'name';
 
 function ProductsContent() {
-    const { products, loading } = useProducts();
+    const { products, loading, categories } = useProducts();
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();

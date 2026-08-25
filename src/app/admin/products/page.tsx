@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useMemo } from 'react';
-import { useProducts, categories } from '@/contexts/ProductContext';
+import { useProducts } from '@/contexts/ProductContext';
 
 type Tab = 'geral' | 'estoque';
 type SortField = 'name' | 'category' | 'price' | 'stock' | 'active';
