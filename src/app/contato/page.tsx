@@ -82,19 +82,19 @@ export default function ContatoPage() {
                     <div className="space-y-6">
                         <div className="rounded-2xl bg-gradient-to-br from-[#1a0510] to-[#0d0308] p-6 border border-[#d6008b]/20">
                             <div className="text-2xl mb-3">📧</div>
-                            <h3 className="text-lg font-semibold text-white mb-1">E-mail</h3>
+                            <h2 className="text-lg font-semibold text-white mb-1">E-mail</h2>
                             <p className="text-white/60 text-sm">{contact.email}</p>
                         </div>
 
                         <div className="rounded-2xl bg-gradient-to-br from-[#1a0510] to-[#0d0308] p-6 border border-[#d6008b]/20">
                             <div className="text-2xl mb-3">💬</div>
-                            <h3 className="text-lg font-semibold text-white mb-1">WhatsApp</h3>
+                            <h2 className="text-lg font-semibold text-white mb-1">WhatsApp</h2>
                             <p className="text-white/60 text-sm">{contact.whatsapp}</p>
                         </div>
 
                         <div className="rounded-2xl bg-gradient-to-br from-[#1a0510] to-[#0d0308] p-6 border border-[#d6008b]/20">
                             <div className="text-2xl mb-3">🕐</div>
-                            <h3 className="text-lg font-semibold text-white mb-1">Horário</h3>
+                            <h2 className="text-lg font-semibold text-white mb-1">Horário</h2>
                             <p className="text-white/60 text-sm">Seg a Sex: 9h às 18h</p>
                         </div>
                     </div>

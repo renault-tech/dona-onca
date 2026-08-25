@@ -145,7 +145,7 @@ export default function TermosPage() {
                         </div>
 
                         {/* Last Updated */}
-                        <p className="mt-6 text-center text-sm text-white/40">
+                        <p className="mt-6 text-center text-sm text-white/60">
                             Última atualização: Janeiro de 2026
                         </p>
                     </div>

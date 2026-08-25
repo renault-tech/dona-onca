@@ -120,9 +120,9 @@ export default function Footer() {
 
                     {/* Navegação */}
                     <div>
-                        <h3 className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-fg">
+                        <h2 className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-fg">
                             Navegação
-                        </h3>
+                        </h2>
                         <ul className="space-y-2 text-sm">
                             <li><Link href="/produtos?categoria=Lingerie" className="hover:text-accent transition-colors">Lingeries</Link></li>
                             <li><Link href="/produtos?categoria=Sexshop" className="hover:text-accent transition-colors">Toys</Link></li>
@@ -132,9 +132,9 @@ export default function Footer() {
 
                     {/* Ajuda */}
                     <div>
-                        <h3 className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-fg">
+                        <h2 className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-fg">
                             Ajuda
-                        </h3>
+                        </h2>
                         <ul className="space-y-2 text-sm">
                             {settings.help_contact_enabled && (
                                 <li><Link href="/contato" className="hover:text-accent transition-colors">Contato</Link></li>
@@ -150,9 +150,9 @@ export default function Footer() {
 
                     {/* Social */}
                     <div>
-                        <h3 className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-fg">
+                        <h2 className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-fg">
                             Social
-                        </h3>
+                        </h2>
                         <div className="flex gap-3">
                             {/* Facebook */}
                             {settings.facebook_enabled && (

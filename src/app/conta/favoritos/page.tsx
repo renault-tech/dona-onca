@@ -40,9 +40,9 @@ export default function FavoritesPage() {
                         <div className="mb-4 rounded-full bg-gray-100 p-4 text-4xl">
                             ❤️
                         </div>
-                        <h3 className="mb-2 text-lg font-medium text-gray-900">
+                        <h2 className="mb-2 text-lg font-medium text-gray-900">
                             Sua lista de desejos está vazia
-                        </h3>
+                        </h2>
                         <p className="mb-6 max-w-sm text-gray-500">
                             Salve os produtos que você mais gostou para ver ou comprar depois.
                         </p>
