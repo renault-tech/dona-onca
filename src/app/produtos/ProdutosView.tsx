@@ -1,8 +1,8 @@
 'use client';
 
 import Image from 'next/image';
-import { useSearchParams } from 'next/navigation';
-import { useState, useEffect, Suspense } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useState, Suspense, useCallback } from 'react';
 import { useProducts, categories } from '@/contexts/ProductContext';
 import ProductCard from '@/components/product/ProductCard';
 import EmptyState from '@/components/ui/EmptyState';
@@ -11,23 +11,31 @@ type SortOption = 'newest' | 'price-low' | 'price-high' | 'name';
 
 function ProductsContent() {
     const { products, loading } = useProducts();
+    const router = useRouter();
+    const pathname = usePathname();
     const searchParams = useSearchParams();
-    const categoryParam = searchParams.get('categoria');
     const queryParam = searchParams.get('q')?.trim().toLowerCase() ?? '';
 
-    const [selectedCategory, setSelectedCategory] = useState('Todos');
-    const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
-    const [selectedColors, setSelectedColors] = useState<string[]>([]);
-    const [sortBy, setSortBy] = useState<SortOption>('newest');
+    // A URL é a fonte da verdade dos filtros (categoria, tamanho, cor, ordenar) --
+    // permite compartilhar um link já filtrado e o botão "voltar" do navegador
+    // funciona naturalmente, sem estado duplicado em useState.
+    const selectedCategory = searchParams.get('categoria') || 'Todos';
+    const selectedSizes = searchParams.get('tamanho')?.split(',').filter(Boolean) ?? [];
+    const selectedColors = searchParams.get('cor')?.split(',').filter(Boolean) ?? [];
+    const sortBy = (searchParams.get('ordenar') as SortOption) || 'newest';
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-    useEffect(() => {
-        if (categoryParam) {
-            setSelectedCategory(categoryParam);
-        } else {
-            setSelectedCategory('Todos');
+    const updateParams = useCallback((updates: Record<string, string | null>) => {
+        const params = new URLSearchParams(searchParams.toString());
+        for (const [key, value] of Object.entries(updates)) {
+            if (value) params.set(key, value);
+            else params.delete(key);
         }
-    }, [categoryParam]);
+        router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    }, [searchParams, router, pathname]);
+
+    const setSelectedCategory = (cat: string) => updateParams({ categoria: cat === 'Todos' ? null : cat });
+    const setSortBy = (sort: SortOption) => updateParams({ ordenar: sort === 'newest' ? null : sort });
 
     // Extract all available sizes and colors from current products for filters
     const allSizes = Array.from(new Set(products.flatMap(p => p.sizes))).sort();
@@ -61,17 +69,17 @@ function ProductsContent() {
     }
 
     const toggleSize = (size: string) => {
-        setSelectedSizes(prev => prev.includes(size) ? prev.filter(s => s !== size) : [...prev, size]);
+        const next = selectedSizes.includes(size) ? selectedSizes.filter(s => s !== size) : [...selectedSizes, size];
+        updateParams({ tamanho: next.length ? next.join(',') : null });
     };
 
     const toggleColor = (color: string) => {
-        setSelectedColors(prev => prev.includes(color) ? prev.filter(c => c !== color) : [...prev, color]);
+        const next = selectedColors.includes(color) ? selectedColors.filter(c => c !== color) : [...selectedColors, color];
+        updateParams({ cor: next.length ? next.join(',') : null });
     };
 
     const clearFilters = () => {
-        setSelectedSizes([]);
-        setSelectedColors([]);
-        setSelectedCategory('Todos');
+        updateParams({ categoria: null, tamanho: null, cor: null });
     };
 
     return (
